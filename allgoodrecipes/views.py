@@ -1,12 +1,13 @@
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 
 def index(request):
     return HttpResponse("index")
 
-@login_required
 def profile(request):
-    return HttpResponse("profile")
+    context_dict = {}
+    return render(request, 'allgoodrecipes/profile.html', context=context_dict)
 
 @login_required
 def profile_settings(request):

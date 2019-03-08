@@ -1,0 +1,26 @@
+{% extends 'allgoodrecipes/base.html' %}
+{% load staticfiles %}
+
+{% block title_block %}
+    Profile
+{% endblock %}
+
+{% block body_block %}
+<h1>Profile</h1>
+<div class="container border">
+  <div class="row border">
+    <div class="col-sm border">
+      <div>
+        {% if user.is_authenticated %}
+            howdy {{ user.username }}!
+        {% else %}
+            You are not logged in
+        {% endif %}
+    </div>
+    </div>
+    <div class="col-sm border">
+      One of three columns
+    </div>
+  </div>
+</div>
+{% endblock %}
