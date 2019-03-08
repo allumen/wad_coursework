@@ -9,17 +9,32 @@
 <h1>Profile</h1>
 <div class="container border">
   <div class="row border">
-    <div class="col-sm border">
+    <div class="col-lg-6 border">
+        <div class="media">
+          <img class="mr-3" src="..." alt="Profile picture">
+          <div class="media-body">
+            <h5 class="mt-0">Welcome back, {{ user.username }}</h5>
+            <p>Registration date: </p>
+            <p>Messages: </p>
+            <p>Comments: </p>
+            <p>Posts: </p>
+          </div>
+        </div>
+        <div>
+            <hr />
+            <button type="button" class="btn btn-primary btn-lg btn-block">Post a new Recipe or Tip</button>  
+        </div>
+    </div>
+    <div class="col-lg-6 border">
       <div>
-        {% if user.is_authenticated %}
-            howdy {{ user.username }}!
-        {% else %}
-            You are not logged in
-        {% endif %}
-    </div>
-    </div>
-    <div class="col-sm border">
-      One of three columns
+      <div class="btn-group" role="group" aria-label="Basic example">
+          <button type="button" class="btn btn-link">Updates</button>
+          <button type="button" class="btn btn-link">Bookmarks</button>
+          <button type="button" class="btn btn-link">Comments</button>
+          <button type="button" class="btn btn-link">Achievements</button>
+          <button type="button" class="btn btn-link">Settings</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>

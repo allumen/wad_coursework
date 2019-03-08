@@ -1,0 +1,32 @@
+{% extends 'allgoodrecipes/base.html' %}
+{% load staticfiles %}
+
+{% block title_block %}
+    Register
+{% endblock %}
+
+{% block body_block %}
+    <h1>Registration</h1>
+<div class="container border">
+  <div class="row border">
+    <div class="col-sm border">
+        {% if registration_complete %}
+            <strong>Thank you for registering!</strong><br />
+            An email will be sent to you confirming your registration.<br /><br />
+            <a href="{% url 'profile' %}">View profile</a><br />
+            or <a href="{% url 'index' %}">return to Main page  </a><br />
+        {% else %}
+            <form id="user_form" method="post" action="{% url 'register' %}"
+                    enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                {{ user_form.as_p }}
+                {{ profile_form.as_p }}
+                
+                <input type="submit" name="submit" value="Register" />
+            </form>
+        {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
