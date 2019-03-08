@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from allgoodrecipes import views
 
 urlpatterns = [
@@ -10,6 +10,6 @@ urlpatterns = [
         path('comments/', views.profile_comments),
     ])),
     path('register/', views.register, name='register'),
-    path('login/', views.login, name='login'),
-    path('logout/', views.logout, name='logout'),
+    path('login/', views.user_login, name='login'),
+    path('logout/', views.user_logout, name='logout'),
 ]
