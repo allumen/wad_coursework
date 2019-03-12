@@ -3,10 +3,35 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.http import HttpResponse, HttpResponseRedirect
-from allgoodrecipes.forms import UserForm, UserProfileForm
+from allgoodrecipes.forms import UserForm, UserProfileForm, RecipeForm
 
 def index(request):
     return HttpResponse("index")
+
+@login_required
+def add_recipe(request):
+    add_successful = False
+    
+    if request.method == 'POST':
+        recipe_form = RecipeForm(data=request.POST)
+        if recipe_form.is_valid():
+            # save new recipe object
+            recipe = recipe_form.save()
+            
+            # add rest of the fields
+            #recipe.user = 
+            
+            add_successful = True
+        else:
+            print(user_form.errors, profile_form.errors)
+    else:
+        recipe_form = RecipeForm()
+        
+    context_dict = {'recipe_form': recipe_form,
+                      'add_successful': add_successful}
+                      
+    return render(request, 'allgoodrecipes/add_recipe.html', context=context_dict)
+    
 
 @login_required
 def profile(request):
@@ -55,12 +80,11 @@ def register(request):
     else:
         # not a POST request render registration form with blank ModelForm instances
         user_form = UserForm()
-        profile_form = UserProfileForm()
-        
+        profile_form = UserProfileForm()        
 
     context_dict = {'user_form': user_form,
-                     'profile_form': profile_form,
-                      'registration_complete': registered}
+                    'profile_form': profile_form,
+                    'registration_complete': registered}
                       
     return render(request, 'allgoodrecipes/register.html', context=context_dict)
     
