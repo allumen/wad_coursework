@@ -3,6 +3,7 @@ from allgoodrecipes import views
 
 urlpatterns = [
     path('', views.index, name='index'),
+    path('add_recipe', views.add_recipe, name='add_recipe'),
     path('profile/', include([
         path('', views.profile, name='profile'),
         path('settings/', views.profile_settings),

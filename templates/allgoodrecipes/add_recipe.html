@@ -1,0 +1,29 @@
+{% extends 'allgoodrecipes/base.html' %}
+{% load staticfiles %}
+
+{% block title_block %}
+    Create new recipe
+{% endblock %}
+
+{% block body_block %}
+<h1>Add a new recipe</h1>
+
+{% if error_message %}
+    {{ error_message }}
+{% endif %}
+
+<div class="container border">
+  <div class="row border">
+    <div class="col-sm border">
+        <form id="recipe_form" method="post" action="{% url 'add_recipe' %}"
+                enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            {{ recipe_form.as_p }}
+            
+            <input type="submit" name="submit" value="Register" />
+        </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
