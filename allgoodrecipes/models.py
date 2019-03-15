@@ -39,3 +39,7 @@ class Ingridient(models.Model):
 class Comment(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.PROTECT)
     text = models.TextField()
+    url = models.CharField(max_length=200)
+    reply = models.CharField(max_length=200)
+    
+    
