@@ -50,6 +50,18 @@ def profile_publications(request):
 def profile_comments(request):
     pass
     
+def privacy(request):
+    pass
+    
+def terms(request):
+    pass
+    
+def map(request):
+    pass
+    
+def contact(request):
+    pass
+    
 def register(request):
     # tell the template if registration successful
     registered = False
