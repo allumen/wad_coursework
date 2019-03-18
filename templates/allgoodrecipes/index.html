@@ -14,7 +14,7 @@
     <div class="col-sm border">
         {% if recipes %}
             {% for recipe in recipes %}
-                <p>{{ recipe.title }}</p>
+                <a href="{% url 'view_recipe' recipe_url=recipe.url %}"><p>{{ recipe.title }} - {{recipe.date_created}}</p></a>
             {% endfor %}
         {% else %}
             <p>There are no published recipes at the moment</p>

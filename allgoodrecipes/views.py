@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from allgoodrecipes.forms import UserForm, UserProfileForm, RecipeForm
 from allgoodrecipes.models import Recipe, UserProfile
 
@@ -11,6 +11,14 @@ def index(request):
     #tips
     return render(request, 'allgoodrecipes/index.html', context={'recipes':recipes})
 
+    
+def view_recipe(request, recipe_url):
+    try:
+        recipe = Recipe.objects.get(url=recipe_url)
+        return render(request, 'allgoodrecipes/view_recipe.html', context={'recipe': recipe})
+    except Recipe.DoesNotExist:
+        raise Http404
+    
 @login_required
 def add_recipe(request):
     add_successful = False

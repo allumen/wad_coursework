@@ -1,0 +1,18 @@
+{% extends 'allgoodrecipes/base.html' %}
+{% load staticfiles %}
+
+{% block title_block %}
+    {{ recipe.title }}
+{% endblock %}
+
+{% block body_block %}
+<h1>{{ recipe.title }}</h1>
+
+<div class="container border">
+  <div class="row border">
+    <div class="col-sm border"> 
+        {{ recipe.title }}
+    </div>
+  </div>
+</div>
+{% endblock %}
