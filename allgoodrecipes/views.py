@@ -102,6 +102,9 @@ def register(request):
     
 # *user_login* is used instead of *login* as the latter would shadow django.auth.login() function
 def user_login(request):
+    if request.user.is_authenticated:
+        return HttpResponseRedirect(reverse('profile'))
+    
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')

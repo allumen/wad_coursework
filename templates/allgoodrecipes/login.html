@@ -86,23 +86,26 @@ span.psw {
 {% if error_message %}
     {{ error_message }}
 {% endif %}
-<form id="login_form" method="post" action="{% url 'login' %}">
-    <div class="imgcontainer">
+
+<div class="imgcontainer">
     <img src="{% static "images/Capture.jpg" %}" alt="AllGoodRecipes logo" />
-  </div>
+</div>
+<form id="login_form" method="post" action="{% url 'login' %}">
+    <div class="container">
+        {% csrf_token %}    
+        <label for="username"><b>Username</b></label>
+        <input type="text" placeholder="Enter Username" name="username" required size="150">
 
-  <div class="container">
-    <label for="uname"><b>Username</b></label>
-    <input type="text" placeholder="Enter Username" name="uname" required>
-
-    <label for="psw"><b>Password</b></label>
-    <input type="password" placeholder="Enter Password" name="psw" required>
+        <label for="password"><b>Password</b></label>
+        <input type="password" placeholder="Enter Password" name="password" required>
         
-    <button type="submit">Login</button>
-    <label>
-      <input type="checkbox" checked="checked" name="remember"> Remember me
-    </label>
-  </div>
+        <input type="hidden" name="redirect_url" value="{{ redirect_url }}" size="50" />
+        
+        <button type="submit">Login</button>
+        <label>
+          <input type="checkbox" checked="checked" name="remember"> Remember me
+        </label>
+    </div>
 
   <div class="container" style="background-color:#f1f1f1">
     <button type="button" class="cancelbtn">Cancel</button>
