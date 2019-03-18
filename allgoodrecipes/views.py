@@ -4,9 +4,12 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from allgoodrecipes.forms import UserForm, UserProfileForm, RecipeForm
+from allgoodrecipes.models import Recipe, UserProfile
 
 def index(request):
-    return HttpResponse("index")
+    recipes = category_list = Recipe.objects.order_by('-date_created')
+    #tips
+    return render(request, 'allgoodrecipes/index.html', context={'recipes':recipes})
 
 @login_required
 def add_recipe(request):
@@ -14,16 +17,16 @@ def add_recipe(request):
     
     if request.method == 'POST':
         recipe_form = RecipeForm(data=request.POST)
-        if recipe_form.is_valid():
-            # save new recipe object
-            recipe = recipe_form.save()
-            
+        if recipe_form.is_valid():     
+            # delay saving of new recipe object
+            recipe = recipe_form.save(commit=False)
+        
             # add rest of the fields
-            #recipe.user = 
+            recipe.user = UserProfile.objects.get(user=request.user)
             
             add_successful = True
         else:
-            print(user_form.errors, profile_form.errors)
+            print(recipe_form.errors)
     else:
         recipe_form = RecipeForm()
         

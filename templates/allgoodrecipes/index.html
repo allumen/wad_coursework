@@ -1,0 +1,25 @@
+{% extends 'allgoodrecipes/base.html' %}
+{% load staticfiles %}
+
+{% block title_block %}
+    AllGoodRecipes
+{% endblock %}
+
+{% block body_block %}
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<h1>Home</h1>
+<div class="container border">
+  <div class="row border">
+    <div class="col-sm border">
+        {% if recipes %}
+            {% for recipe in recipes %}
+                <p>{{ recipe.title }}</p>
+            {% endfor %}
+        {% else %}
+            <p>There are no published recipes at the moment</p>
+        {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
