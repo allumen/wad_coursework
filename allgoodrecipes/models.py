@@ -1,5 +1,7 @@
 from django.db import models
+from django.template.defaultfilters import slugify
 from django.contrib.auth.models import User
+from datetime import datetime 
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -20,13 +22,30 @@ class Post(models.Model):
     date_created = models.DateField(auto_now_add=True)
     public = models.BooleanField(default=False)
     
+    objects = models.Manager()
+        
     class Meta:
         abstract = True
+        
+    def __str__(self):
+        return self.title
         
         
 class Recipe(Post):
     preparations = models.TextField(blank=True)
     instructions = models.TextField()
+    
+    def save(self, *args, **kwargs):
+        url_variant = slugify(self.title + " " + str(datetime.now().date()))
+        
+        # avoid url collisions by appending an int if the url exists already
+        same_urls = Recipe.objects.filter(url__contains=url_variant)
+        if len(same_urls) > 0:
+            url_variant = "{}-{}".format(url_variant, len(same_urls))
+            
+        self.url = url_variant
+        
+        super(Post, self).save(*args, **kwargs)
     
     
 class Tip(Post):

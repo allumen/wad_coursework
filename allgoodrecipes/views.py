@@ -24,6 +24,8 @@ def add_recipe(request):
             # add rest of the fields
             recipe.user = UserProfile.objects.get(user=request.user)
             
+            recipe.save()
+            
             add_successful = True
         else:
             print(recipe_form.errors)
