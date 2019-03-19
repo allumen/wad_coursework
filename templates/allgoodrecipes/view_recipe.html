@@ -6,12 +6,46 @@
 {% endblock %}
 
 {% block body_block %}
-<h1>{{ recipe.title }}</h1>
 
 <div class="container border">
   <div class="row border">
-    <div class="col-sm border"> 
-        {{ recipe.title }}
+    <div class="col-lg-6 border">
+        <h3>{{ recipe.title }}</h3>
+        {% if recipe.categories.all %}
+            <h6>Categories</h6>
+            <p>
+                {% for category in recipe.categories.all %}
+                <a>category</a>
+                {% endfor %}
+            </p>
+        {% else %}
+            <h6>This recipe is not in any category</h6>
+        {% endif %}
+        <p>
+        {% if recipe.description %}
+            recipe.description
+        {% else %}
+            This recipe does not have a description
+        {% endif %}
+        </p>
+        <hr />
+        <p>Preparation time: {{ recipe.preparation_time }}
+        <br>Number of servings: {{ recipe.servings_number }}</p>
+        <hr />
+        <h4>Preparations</h4>
+        <p>{{ recipe.preparations }}</p>
+        <h4>Instructions</h4>
+        <p>{{ recipe.instructions }}</p>
+    </div>
+    <div class="col-lg-6 border">
+        <div class="media">
+          <img class="mr-3" src="..." alt="Recipe picture">
+          <div class="media-body">
+          </div>
+        </div>
+        <hr />
+        <h4>Ingridients</h4>
+        <h4>Tips</h4>
     </div>
   </div>
 </div>

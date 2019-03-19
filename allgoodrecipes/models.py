@@ -34,6 +34,11 @@ class Post(models.Model):
 class Recipe(Post):
     preparations = models.TextField(blank=True)
     instructions = models.TextField()
+    categories = models.ManyToManyField(to='RecipeCategory')
+    
+    # recipe details
+    preparation_time = models.IntegerField()
+    servings_number = models.IntegerField()
     
     def save(self, *args, **kwargs):
         url_variant = slugify(self.title + " " + str(datetime.now().date()))
@@ -47,6 +52,10 @@ class Recipe(Post):
         
         super(Post, self).save(*args, **kwargs)
     
+    
+class RecipeCategory(models.Model):
+    title = models.CharField(primary_key=True, max_length=128)
+    description = models.CharField(max_length=200, blank=True)
     
 class Tip(Post):
     text = models.TextField()
