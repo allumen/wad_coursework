@@ -1,0 +1,30 @@
+
+{% extends 'allgoodrecipes/base.html' %}
+{% load staticfiles %}
+
+{% block title_block %}
+    Comment
+{% endblock %}
+
+{% block body_block %}
+<h1>Comment</h1>
+
+{% if error_message %}
+    {{ error_message }}
+{% endif %}
+
+<div class="container border">
+  <div class="row border">
+    <div class="col-sm border">
+        <form id="comment_form" method="post" action="{% url 'comment' %}"
+                enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            {{ comment_form.as_p }}
+            
+            <input type="submit" name="submit" value="Comment" />
+        </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
