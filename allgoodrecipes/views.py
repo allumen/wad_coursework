@@ -160,3 +160,14 @@ def user_login(request):
 def user_logout(request):
     logout(request)
     return HttpResponseRedirect(reverse('index'))
+
+@login required
+def comment(request, pk):
+  post = get_object_or_404(Post, pk=pk)
+  comment = comment(
+      user = UserProfile.objects.get(request.user),
+      text = request.POST['comment'],
+      post = Post.objects.get(request.title),
+      reply = ())
+  comment.save()
+  return HttpResponseRedirect(reverse('allgoodrecipes.view_recipe'))
