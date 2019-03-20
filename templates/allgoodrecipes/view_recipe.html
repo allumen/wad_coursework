@@ -14,9 +14,9 @@
         {% if recipe.categories.all %}
             <h6>Categories</h6>
             <p>
-                {% for category in recipe.categories.all %}
-                <a>category</a>
-                {% endfor %}
+            {% for category in recipe.categories.all %}
+                <a><span class="badge badge-pill badge-info">{{ category.title }}</span></a>
+            {% endfor %}
             </p>
         {% else %}
             <h6>This recipe is not in any category</h6>
@@ -39,12 +39,19 @@
     </div>
     <div class="col-lg-6 border">
         <div class="media">
-          <img class="mr-3" src="..." alt="Recipe picture">
-          <div class="media-body">
-          </div>
+          <img class="mr-3 img-fluid" src="/media/{{ recipe.image }}" alt="Recipe picture">
+        </div>
+        <div>
+          Posted by: {{ user }}
+          on {{ recipe.date_created }}
         </div>
         <hr />
         <h4>Ingridients</h4>
+        <ul>
+        {% for ingredient in ingredients %}
+            <li>{{ ingredient.title }}      {{ ingredient.quantity }} {{ ingredient.units.short }}</li>
+        {% endfor %}
+        </ul>
         <h4>Tips</h4>
     </div>
   </div>

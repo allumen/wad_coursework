@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from allgoodrecipes.forms import UserForm, UserProfileForm, RecipeForm
-from allgoodrecipes.models import Recipe, UserProfile
+from allgoodrecipes.models import Recipe, UserProfile, Ingredient
 
 def index(request):
     recipes = category_list = Recipe.objects.order_by('-date_created')
@@ -15,7 +15,8 @@ def index(request):
 def view_recipe(request, recipe_url):
     try:
         recipe = Recipe.objects.get(url=recipe_url)
-        return render(request, 'allgoodrecipes/view_recipe.html', context={'recipe': recipe})
+        ingredients = Ingredient.objects.filter(recipe=recipe)
+        return render(request, 'allgoodrecipes/view_recipe.html', context={'recipe': recipe, 'ingredients': ingredients})
     except Recipe.DoesNotExist:
         raise Http404
     
