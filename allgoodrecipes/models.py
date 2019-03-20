@@ -89,6 +89,3 @@ class Comment(models.Model):
     text = models.TextField(bank = true, null = true)
     date = models.DateField(auto_now_add=True)
     post = ForeignKey(Post)
-    reply = models.CharField(max_length=200, null=True)
-    
-    
