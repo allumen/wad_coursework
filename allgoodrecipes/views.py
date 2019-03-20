@@ -168,6 +168,5 @@ def comment(request, pk):
       user = UserProfile.objects.get(request.user),
       text = request.POST['comment'],
       post = Post.objects.get(request.title),
-      reply = ())
   comment.save()
   return HttpResponseRedirect(reverse('allgoodrecipes.view_recipe'))
