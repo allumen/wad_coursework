@@ -88,4 +88,4 @@ class Comment(models.Model):
     user = models.ForeignKey(UserProfile, on_delete=models.PROTECT)
     text = models.TextField(blank = True, null = True)
     date = models.DateField(auto_now_add=True)
-    post = ForeignKey(Post.objects.get(request.url))
+    post = models.ForeignKey(Post.objects.get(request.url))
