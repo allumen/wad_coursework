@@ -86,6 +86,6 @@ class Unit(models.Model):
 class Comment(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(UserProfile, on_delete=models.PROTECT)
-    text = models.TextField(bank = true, null = true)
+    text = models.TextField(blank = True, null = True)
     date = models.DateField(auto_now_add=True)
     post = ForeignKey(Post.objects.get(request.url))
