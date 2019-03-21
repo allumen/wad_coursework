@@ -7,115 +7,41 @@
 
 {% block body_block %}
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-body {font-family: Arial, Helvetica, sans-serif;}
 
-
-/* Full-width input fields */
-input[type=text], input[type=password] {
-  width: 100%;
-  padding: 12px 20px;
-  margin: 8px 0;
-  display: inline-block;
-  border: 1px solid #ccc;
-  box-sizing: border-box;
-}
-
-input[type=text]:focus, input[type=password]:focus {
-  background-color: #ddd;
-  outline: none;
-}
-
-/* Set a style for all buttons */
-button {
-  background-color: #4CAF50;
-  color: white;
-  padding: 14px 20px;
-  margin: 8px 0;
-  border: none;
-  cursor: pointer;
-  width: 100%;
-}
-
-button:hover {
-  opacity:0.8;
-}
-
-/* Extra styles for the cancel button */
-.cancelbtn {
-  padding: 14px 20px;
-  background-color: #f44336;
-}
-
-/* Float cancel and signup buttons and add an equal width */
-.cancelbtn, .signupbtn {
-  float: left;
-  width: 50%;
-}
-
-/* Add padding to container elements */
-.container {
-  padding: 16px;
-  width: 60%;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-/* Clear floats */
-.clearfix::after {
-  content: "";
-  clear: both;
-  display: table;
-}
-
-/* Change styles for cancel button and signup button on extra small screens */
-@media screen and (max-width: 300px) {
-  .cancelbtn, .signupbtn {
-     width: 100%;
-  }
-}
-</style>
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col col-sm-4 align-self-center">
     <h1>Registration</h1>
-<div class="container border">
-  <div class="row border">
-    <div class="col-sm border">
         {% if registration_complete %}
             <strong>Thank you for registering!</strong><br />
             An email will be sent to you confirming your registration.<br /><br />
             <a href="{% url 'profile' %}">View profile</a><br />
             or <a href="{% url 'index' %}">return to Main page  </a><br />
         {% else %}
+            {% if error_message %}
+                <div class="alert alert-danger" role="alert">
+                  {{ error_message }}
+                </div>
+            {% endif %}
             <form id="user_form" method="post" action="{% url 'register' %}"
                     enctype="multipart/form-data">
                 {% csrf_token %}
                 
-                {{ user_form.as_p }}
-                {{ profile_form.as_p }}
-                
-                <div class="container">
-    <h1>Sign Up</h1>
-    <p>Please fill in this form to create an account.</p>
-
-    <label for="email"><b>Email</b></label>
-    <input type="text" placeholder="Enter Email" name="email" required>
-
-    <label for="psw"><b>Password</b></label>
-    <input type="password" placeholder="Enter Password" name="psw" required>
-
-    <label for="psw-repeat"><b>Repeat Password</b></label>
-    <input type="password" placeholder="Repeat Password" name="psw-repeat" required>
-    
-    <label>
-      <input type="checkbox" checked="checked" name="remember" style="margin-bottom:15px"> Remember me
-    </label>
-    
-    <p>By creating an account you agree to our <a href="#" style="color:dodgerblue">Terms & Privacy</a>.</p>
-
-    <div class="clearfix">
-      <button type="button" class="cancelbtn">Cancel</button>
-      <button type="submit" class="signupbtn">Sign Up</button>
-    </div>
-  </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" name="{{ user_form.username.html_name }}" id="{{ user_form.username.id_for_label }}" placeholder="Username" >
+                </div>
+                <div class="form-group">
+                    <input type="email" class="form-control" name="{{ user_form.email.html_name }}" id="{{ user_form.email.id_for_label  }}" placeholder="Enter email">
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-control" name="{{ user_form.password.html_name }}" id="{{ user_form.password.id_for_label  }}" placeholder="Password">
+                </div>
+                <div class="form-group">
+                    <div class="custom-file">
+                        <label type="file" accept="image/*" name="{{ profile_form.picture.html_name }}" id="{{ profile_form.picture.id_for_label  }}" class="custom-file-label">Choose file</label>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success">Sign up</button>
             </form>
         {% endif %}
     </div>

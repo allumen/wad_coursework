@@ -1,10 +1,12 @@
 from django.shortcuts import render
+from django.forms import inlineformset_factory
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from allgoodrecipes.forms import UserForm, UserProfileForm, RecipeForm
-from allgoodrecipes.models import Recipe, UserProfile, Ingredient
+from allgoodrecipes.models import Recipe, UserProfile, Ingredient, Ingredient
+from django.contrib.auth.models import User
 
 def index(request):
     recipes = category_list = Recipe.objects.order_by('-date_created')
@@ -15,7 +17,8 @@ def index(request):
 def view_recipe(request, recipe_url):
     try:
         recipe = Recipe.objects.get(url=recipe_url)
-        ingredients = Ingredient.objects.filter(recipe=recipe)
+        ingredients = Ingredient.objects.all()
+        print(ingredients)
         return render(request, 'allgoodrecipes/view_recipe.html', context={'recipe': recipe, 'ingredients': ingredients})
     except Recipe.DoesNotExist:
         raise Http404
@@ -24,28 +27,49 @@ def view_recipe(request, recipe_url):
 def add_recipe(request):
     add_successful = False
     
+    IngredientsFormSet = inlineformset_factory(Recipe, Ingredient, exclude=("delete",), can_delete=False, extra=10)
+    
+    # process first stage
     if request.method == 'POST':
         recipe_form = RecipeForm(data=request.POST)
         if recipe_form.is_valid():     
             # delay saving of new recipe object
-            recipe = recipe_form.save(commit=False)
-        
+            recipe = recipe_form.save(commit=False)  
             # add rest of the fields
             recipe.user = UserProfile.objects.get(user=request.user)
-            
             recipe.save()
             
+            ingredients_form = IngredientsFormSet(data=request.POST, instance=recipe)
             add_successful = True
+            
+            if ingredients_form.is_valid():
+                ingredients_form.save()
+            else:
+                context_dict = {
+                            'error_message': ingredients_form.errors}
+                return render(request, 'allgoodrecipes/add_recipe.html', context=context_dict)
+            
+            context_dict = {
+                            'ingredients_set_form': ingredients_form,
+                            'recipe_url': recipe.url}
+                      
+            return render(request, 'allgoodrecipes/add_recipe.html', context=context_dict)
         else:
             print(recipe_form.errors)
+            context_dict = {
+                            'error_message': recipe_form.errors}
+            return render(request, 'allgoodrecipes/add_recipe.html', context=context_dict) 
     else:
         recipe_form = RecipeForm()
+        ingredients_set_form = IngredientsFormSet()
         
-    context_dict = {'recipe_form': recipe_form,
-                      'add_successful': add_successful}
-                      
-    return render(request, 'allgoodrecipes/add_recipe.html', context=context_dict)
-    
+        context_dict = {
+                        'recipe_form': recipe_form,
+                        'add_successful': add_successful,
+                        'ingredients_set_form':ingredients_set_form}
+                          
+        return render(request, 'allgoodrecipes/add_recipe.html', context=context_dict)
+        
 
 @login_required
 def profile(request):
@@ -103,6 +127,7 @@ def register(request):
             registered = True
         else:
             print(user_form.errors, profile_form.errors)
+            return render(request, 'allgoodrecipes/register.html', context={'error_message': "Registration unsucsessful!"})
     else:
         # not a POST request render registration form with blank ModelForm instances
         user_form = UserForm()
@@ -161,12 +186,13 @@ def user_logout(request):
     logout(request)
     return HttpResponseRedirect(reverse('index'))
 
-@login required
-def comment(request, pk):
+@login_required
+def add_comment(request, pk):
   post = get_object_or_404(Post, pk=pk)
   comment = comment(
       user = UserProfile.objects.get(request.user),
       text = request.POST['comment'],
       post = Post.objects.get(request.title),
+      )
   comment.save()
   return HttpResponseRedirect(reverse('allgoodrecipes.view_recipe'))

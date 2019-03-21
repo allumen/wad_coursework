@@ -1,4 +1,5 @@
 from django import forms
+from django.forms import inlineformset_factory
 from django.contrib.auth.models import User
 from allgoodrecipes.models import UserProfile, Recipe
            
@@ -19,4 +20,4 @@ class UserProfileForm(forms.ModelForm):
 class RecipeForm(forms.ModelForm):
     class Meta:
         model = Recipe
-        fields = ('title', 'preparations', 'instructions')
+        fields = ('title', 'description', 'instructions', 'preparation_time', 'servings_number')

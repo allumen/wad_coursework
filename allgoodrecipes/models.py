@@ -12,8 +12,17 @@ class UserProfile(models.Model):
     def __str__(self):
         return self.user.username
 
+class RecipeCategory(models.Model):
+    title = models.CharField(primary_key=True, max_length=128)
+    description = models.CharField(max_length=200, blank=True)
+    
+    def __str__(self):
+        return self.title 
+       
 
-class Post(models.Model):
+class Recipe(models.Model):
+    id = models.AutoField(primary_key=True)
+
     title = models.CharField(max_length=200)
     image = models.ImageField(upload_to='recipe_images', blank=True)
     
@@ -25,24 +34,16 @@ class Post(models.Model):
     public = models.BooleanField(default=False)
     
     objects = models.Manager()
-        
-    class Meta:
-        abstract = True
-        
-    def __str__(self):
-        return self.title
-        
-        
-class Recipe(Post):
-    preparations = models.TextField(blank=True)
+    
+    description = models.CharField(max_length=300, blank=True)
     instructions = models.TextField()
-    categories = models.ManyToManyField(to='RecipeCategory', blank=True)
+    categories = models.ManyToManyField(RecipeCategory, blank=True)
     
     # recipe details
     preparation_time = models.PositiveIntegerField()
     servings_number = models.PositiveIntegerField()
     
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs):    
         if not self.url_chosen:
             url_variant = slugify(self.title + " " + str(datetime.now().date()))
             
@@ -53,27 +54,21 @@ class Recipe(Post):
                 
             self.url = url_variant
             self.url_chosen = True
+            
+        super(Recipe, self).save(*args, **kwargs)
         
-        super(Post, self).save(*args, **kwargs)
-    
-class RecipeCategory(models.Model):
-    title = models.CharField(primary_key=True, max_length=128)
-    description = models.CharField(max_length=200, blank=True)
-    
     def __str__(self):
         return self.title
-    
-class Tip(Post):
-    text = models.TextField()
-    
+
+
 class Ingredient(models.Model):
     title = models.CharField(max_length=128, blank=False)
     quantity = models.PositiveIntegerField()
     
     units = models.ForeignKey(to='Unit', on_delete=models.PROTECT)
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipe, to_field="url", on_delete=models.CASCADE)
     
-    def __str__(self):
+    def __str__(self):  
         return self.title
     
 class Unit(models.Model):
@@ -86,6 +81,6 @@ class Unit(models.Model):
 class Comment(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(UserProfile, on_delete=models.PROTECT)
-    text = models.TextField(bank = true, null = true)
+    text = models.TextField()
     date = models.DateField(auto_now_add=True)
-    post = ForeignKey(Post.objects.get(request.url))
+    post = models.ForeignKey(Recipe, on_delete=models.CASCADE)

@@ -8,19 +8,25 @@
 {% block body_block %}
 <h1>Add a new recipe</h1>
 
-{% if error_message %}
-    {{ error_message }}
-{% endif %}
-
 <div class="container border">
   <div class="row border">
     <div class="col-sm border">
+        {% if error_message %}
+            <div class="alert alert-danger" role="alert">
+              {{ error_message }}
+            </div>
+        {% endif %}
         <form id="recipe_form" method="post" action="{% url 'add_recipe' %}"
                 enctype="multipart/form-data">
             {% csrf_token %}
             
+            <h2>Recipe details</h2>
             {{ recipe_form.as_p }}
-            
+            <h2>Ingredients</h2>
+            <div id="ingredients">
+            {{ ingredients_set_form.as_p }}
+            </div>
+            <input type="hidden" name="recipe_url" value="{{ recipe_url }}">
             <input type="submit" name="submit" value="Add a recipe" />
         </form>
     </div>

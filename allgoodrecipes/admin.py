@@ -1,5 +1,5 @@
 from django.contrib import admin
-from allgoodrecipes.models import Recipe, Tip, UserProfile, Comment, Ingredient, Unit, RecipeCategory
+from allgoodrecipes.models import Recipe, UserProfile, Comment, Ingredient, Unit, RecipeCategory
 
 # Register your models here.
 # Register your models here.
@@ -19,10 +19,9 @@ class RecipeAdmin(admin.ModelAdmin):
         IngredientInline,
     ]
     
-    exclude = ('url_chosen',)
+    exclude = ('url_chosen', 'url')
 
 admin.site.register(Recipe, RecipeAdmin)
-admin.site.register(Tip)
 admin.site.register(UserProfile)
 admin.site.register(Comment)
 admin.site.register(Unit)
