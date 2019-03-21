@@ -7,7 +7,7 @@ urlpatterns = [
     path('add_recipe/', views.add_recipe, name='add_recipe'),
     path('profile/', include([
         path('', views.profile, name='profile'),
-        path('settings/', views.profile_settings),
+        path('settings/', views.profile_settings, name= 'settings'),
         path('publications/', views.profile_publications),
         path('comments/', views.profile_comments),
     ])),
