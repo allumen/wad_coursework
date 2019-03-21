@@ -11,15 +11,39 @@
 <h1>Home</h1>
 <div class="container border">
   <div class="row border">
-    <div class="col-sm border">
+    <div class="col-sm-3 border">
         {% if recipes %}
+			<i><b>Browse recipes</i></b>
+			<div class="well">
             {% for recipe in recipes %}
+				
                 <a href="{% url 'view_recipe' recipe_url=recipe.url %}"><p>{{ recipe.title }} - {{recipe.date_created}}</p></a>
-            {% endfor %}
+				
+			{% endfor %}
+			</div>
         {% else %}
             <p>There are no published recipes at the moment</p>
         {% endif %}
     </div>
+	<div class="col-sm-6 border">
+	  <div class="row">
+		<i><b>Trending</i></b>
+		<div class="well">Most popular recipe</div>
+      </div>
+	  <div class="row">
+		<i><b>Latest events</i></b>
+		<div class="well">newest recipes and competitions</div>
+	  </div>
+	</div>
+	<div class="col-sm-3 border">
+	  <div class="row">
+		<i><b>Competitions</i></b>
+		<div class="well">current competition</div>
+      </div>
+	  <div class="row">
+		<i><b>Tips</i></b>
+		<div class="well">new tips</div>
+	  </div>
   </div>
 </div>
 {% endblock %}
