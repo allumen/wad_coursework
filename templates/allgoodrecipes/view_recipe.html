@@ -7,10 +7,37 @@
 
 {% block body_block %}
 
-<div class="container border">
-  <div class="row border">
-    <div class="col-lg-6 border">
-        <h3>{{ recipe.title }}</h3>
+<div class="container">
+  <div class="row">
+    <div class="col-lg-6">
+        <div class="mb-3">
+            <h3 class="m-0">{{ recipe.title }}</h3>
+            {% if user.is_authenticated and user == recipe.user.user or user.is_authenticated and perms.recipe.publish %}
+                {% if recipe.public %}
+                    <span class="badge badge-success" id="public_label" value="public">Published</span>
+                {% else %}
+                    <span class="badge badge-warning" id="public_label" value="hidden">Hidden from public</span>
+                {% endif %}
+            {% endif %}
+        </div>
+        <hr />
+        {% if user.is_authenticated and user == recipe.user.user or user.is_authenticated and perms.recipe.publish %}
+            <div class="">
+              <h5>Editing</h5>
+                {% if recipe.public %}
+                    <button type="submit" class="btn btn-info" id="publish_recipe">Hide recipe</button>
+                {% else %}
+                    <button type="submit" class="btn btn-warning" id="publish_recipe">Publish recipe</button>
+                {% endif %}
+                <div class="custom-file">
+                    <input type="file" accept="image/*" class="custom-file-input" name="new_picture" id="new_picture_upload" />
+                    <label class="custom-file-label" for="new_picture">Choose file</label>
+                </div>
+                <button type="submit" class="btn btn-info" id="update_image">Update image</button>
+            </div>
+            {% endif %}
+            <hr />
+        
         {% if recipe.categories.all %}
             <h6>Categories</h6>
             <p>
@@ -21,21 +48,22 @@
         {% else %}
             <h6>This recipe is not in any category</h6>
         {% endif %}
+        
         <p>
         {% if recipe.description %}
-            recipe.description
+            {{ recipe.description }}
         {% else %}
             This recipe does not have a description
         {% endif %}
         </p>
         <hr />
-        <p>Preparation time: {{ recipe.preparation_time }}
+        <p>Preparation time: {{ preparation_time }}
         <br>Number of servings: {{ recipe.servings_number }}</p>
         <hr />
         <h4>Instructions</h4>
         <p>{{ recipe.instructions }}</p>
     </div>
-    <div class="col-lg-6 border">
+    <div class="col-lg-6">
         <div class="media">
           <img class="mr-3 img-fluid" src="/media/{{ recipe.image }}" alt="Recipe picture">
         </div>
@@ -45,13 +73,149 @@
         </div>
         <hr />
         <h4>Ingridients</h4>
-        <ul>
-        {% for ingredient in ingredients %}
-            <li>{{ ingredient.title }}      {{ ingredient.quantity }} {{ ingredient.units.short }}</li>
-        {% endfor %}
-        </ul>
-        <h4>Tips</h4>
+        {% if ingredients %}
+            <ul>
+                {% for ingredient in ingredients %}
+                    <li>{{ ingredient.title }}      {{ ingredient.quantity }} {{ ingredient.units.short }}</li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <h6>There are no ingredients</h6>
+        {% endif %}
+        
+        {% if tips %}
+            <h4>Tips</h4>
+        {% endif %}
     </div>
   </div>
+  <hr />
+  <div class="row">
+    <div class="col-lg-12">
+        <h4>Comments</h4>
+        {% if True %}
+        <div class="form-group">
+            <label for="textfield-comment-text">Leave new comment</label>
+            <textarea class="form-control mb-3" name="" id="textfield-comment-text" rows="3"></textarea>
+        </div>
+        <input type="submit" class="btn btn-info btn-sm btn-block" name="submit" id="btn-comment-post" value="Post comment" />
+        {% endif %}
+    </div>
+  </div>
+  <div id="comments-block">
+    {% for comment in comments %}
+    <div class="comment row p-3">
+        <div class="col-lg-3 p-auto border rounded">
+        <p>Posted by <b>{{ comment.user }}</b><br>on {{ comment.date }}</p>
+        </div>
+        <div class="col-lg-9 p-auto border rounded">
+        {{ comment.text }}
+        </div>
+    </div>
+    {% endfor %}
+  </div>
 </div>
+{% endblock %}
+
+{% block javascript %}
+{% csrf_token %}
+<script type="text/javascript">
+// using jQuery
+var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+</script>
+<script>
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+    
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
+    });
+    
+    $("#btn-comment-post").click(function () {
+      text = $("#textfield-comment-text").val();
+      $.ajax({
+        url: '/add_comment/',
+        type: "POST",
+        dataType: 'json',
+        data: {'action': 'addComment',
+               'post_url': '{{ recipe.url }}',
+               'comment_text': text
+                },
+        success: function (data) {
+            if (data.status === "success") {
+                $("#comments-block").prepend('<div class="comment row p-3"><div class="col-lg-3 p-auto border rounded"><p>Posted by <b>'+ data.new_comment_user + "</b><br>on " + data.new_comment_date +'</p></div><div class="col-lg-9 p-auto border rounded">' + text + '</div></div>')
+            } else {
+                alert("Fail! Error:" + data.error);
+            }
+        }
+      });
+    });
+
+    $("#publish_recipe").click(function () {      
+      $.ajax({
+        url: '/recipe/{{ recipe.url }}/edit/',
+        data: {'action': 'change_public'},
+        dataType: 'json',
+        success: function (data) {
+          if (data.status === "success") {
+            if($("#public_label").attr('value') === "public") {
+                $("#public_label").removeClass("badge-success");
+                $("#public_label").addClass("badge-warning");
+                $("#public_label").text("Hidden from public");
+                
+                $("#publish_recipe").removeClass("btn-info");
+                $("#publish_recipe").addClass("btn-warning");
+                $("#publish_recipe").text("Publish recipe");
+            } else {
+                $("#public_label").removeClass("badge-warning");
+                $("#public_label").addClass("badge-success");
+                $("#public_label").text("Published");
+                
+                $("#publish_recipe").removeClass("btn-warning");
+                $("#publish_recipe").addClass("btn-info");
+                $("#publish_recipe").text("Hide recipe");
+            }
+          } else {
+            alert("An error occured");
+          }
+        }
+      });
+    });
+    
+    $("#update_image").click(function () {      
+        image = $('#new_picture_upload')[0];
+        
+        var imageForm = new FormData();
+        
+        if (image && image.files[0]) {
+            imageForm.append('action', 'update_image');
+            imageForm.append('imageFile', image.files[0]);
+        } else {
+            alert("error!");
+            return false;
+        }
+        
+        
+      $.ajax({
+        url: '/recipe/{{ recipe.url }}/edit/',
+        type: "POST",
+        data: imageForm,
+        success: function (data) {
+            if (data.status === "success") {
+                alert("Sucess!");
+            } else {
+                alert("Fail");
+            }
+        },
+        contentType: false,
+        processData: false
+      });
+    });
+  </script>
+  <script src="{% static "scripts/uploadFileLabelChanger.js" %}"></script>
 {% endblock %}

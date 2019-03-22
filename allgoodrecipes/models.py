@@ -2,6 +2,15 @@ from django.db import models
 from django.template.defaultfilters import slugify
 from django.contrib.auth.models import User
 from datetime import datetime 
+import os
+
+def recipe_image_handler(instance, filename):
+    # delete old file
+    instance.image.delete()
+    # get new file extension and save with custom name
+    image_extension = os.path.splitext(filename)[1]
+    return '/'.join(['recipe_images', instance.title, str(instance.url) + image_extension])
+
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -11,6 +20,7 @@ class UserProfile(models.Model):
     
     def __str__(self):
         return self.user.username
+
 
 class RecipeCategory(models.Model):
     title = models.CharField(primary_key=True, max_length=128)
@@ -24,7 +34,8 @@ class Recipe(models.Model):
     id = models.AutoField(primary_key=True)
 
     title = models.CharField(max_length=200)
-    image = models.ImageField(upload_to='recipe_images', blank=True)
+    # user custom upload_to callable to rename uploaded images
+    image = models.ImageField(upload_to=recipe_image_handler, blank=True)
     
     user = models.ForeignKey(UserProfile, on_delete=models.PROTECT)
     url = models.CharField(max_length=200, unique=True)
@@ -70,17 +81,19 @@ class Ingredient(models.Model):
     
     def __str__(self):  
         return self.title
-    
+
+
 class Unit(models.Model):
     title = models.CharField(max_length=128, unique=True)
     short = models.CharField(max_length=4, unique=True)
     
     def __str__(self):
         return self.title
-    
+
+
 class Comment(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(UserProfile, on_delete=models.PROTECT)
     text = models.TextField()
-    date = models.DateField(auto_now_add=True)
+    date = models.DateTimeField(auto_now_add=True)
     post = models.ForeignKey(Recipe, on_delete=models.CASCADE)

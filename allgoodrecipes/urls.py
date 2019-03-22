@@ -4,6 +4,7 @@ from allgoodrecipes import views
 urlpatterns = [
     path('', views.index, name='index'),
     path('recipe/<recipe_url>/', views.view_recipe, name='view_recipe'),
+    path('recipe/<recipe_url>/edit/', views.edit_recipe, name='edit_recipe'),
     path('add_recipe/', views.add_recipe, name='add_recipe'),
     path('profile/', include([
         path('', views.profile, name='profile'),
