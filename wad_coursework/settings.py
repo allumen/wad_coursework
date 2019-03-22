@@ -36,7 +36,8 @@ SECRET_KEY = 'iqby!f)ig-ey#6-%09o!5u340p%gbc9-!3k#qb#buse^wuc_vl'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['']
+ALLOWED_HOSTS = ['',
+                 '127.0.0.1',]
 
 
 # Application definition
@@ -48,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sitemaps',
     'allgoodrecipes'
 ]
 
@@ -65,7 +67,7 @@ ROOT_URLCONF = 'wad_coursework.urls'
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'BACKEND': 'django.template.backends.django.DjangoTemplates', 'django.template.backends.django.DjangoTemplates',
         'DIRS': [TEMPLATE_DIR,],
         'APP_DIRS': True,
         'OPTIONS': {

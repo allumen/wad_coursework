@@ -29,21 +29,34 @@
         {% else %}
             <p>There are no published recipes at the moment</p>
         {% endif %}
-		</br>
-        </div>
+    </div>
+	<div class="col-sm-6 border">
 	  <div class="row border">
-	  <div class="col-sm-6 border">
+		<i><b>Trending</i></b>
+		</br>
+		<div class="well">Most popular recipe</div>
+      </div>
+	  <div class="row border">
 		<i><b>Latest events</i></b>
-		<div class="well">newest recipes and competitions</div></div>
+		</br>
+		{% if recipes2 %}
+		  {% for recipe in recipes2 %}
+		    <a href="{% url 'view_recipe' recipe_url=recipe.url %}"><p>{{ recipe.title }} - {{recipe.date_created}}</p></a>
+		  {% endfor %}
+		{% else %}
+		  <p>There are no recipes published today!</p>
+		{% endif %}
 	  </div>
 	</div>
 	<div class="col-sm-3 border">
 	  <div class="row border">
 		<i><b>Competitions</i></b>
+		</br>
 		<div class="well">current competition</div>
       </div>
 	  <div class="row border">
 		<i><b>Tips</i></b>
+		</br>
 		<div class="well">new tips</div>
 	  </div>
   </div>
