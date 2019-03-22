@@ -12,6 +12,7 @@ urlpatterns = [
         path('publications/', views.profile_publications),
         path('comments/', views.profile_comments),
     ])),
+    path('search_ajax/', views.search_ajax, name='search_ajax'),
     path('add_comment/', views.add_comment, name = 'add_comment'),
     path('register/', views.register, name='register'),
     path('login/', views.user_login, name='login'),

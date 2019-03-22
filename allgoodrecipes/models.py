@@ -4,11 +4,10 @@ from django.contrib.auth.models import User
 from datetime import datetime 
 import os
 
-def recipe_image_handler(instance, filename):
-    # delete old file
-    instance.image.delete()
+def recipe_image_handler(instance, filename):   
     # get new file extension and save with custom name
     image_extension = os.path.splitext(filename)[1]
+    new_name = '/'.join(['recipe_images', instance.title, str(instance.url) + image_extension])
     return '/'.join(['recipe_images', instance.title, str(instance.url) + image_extension])
 
 

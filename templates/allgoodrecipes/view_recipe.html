@@ -29,7 +29,7 @@
                 {% else %}
                     <button type="submit" class="btn btn-warning" id="publish_recipe">Publish recipe</button>
                 {% endif %}
-                <div class="custom-file">
+                <div class="custom-file mt-3 mb-1">
                     <input type="file" accept="image/*" class="custom-file-input" name="new_picture" id="new_picture_upload" />
                     <label class="custom-file-label" for="new_picture">Choose file</label>
                 </div>
@@ -37,18 +37,32 @@
             </div>
             {% endif %}
             <hr />
-        
-        {% if recipe.categories.all %}
-            <h6>Categories</h6>
-            <p>
-            {% for category in recipe.categories.all %}
-                <a><span class="badge badge-pill badge-info">{{ category.title }}</span></a>
-            {% endfor %}
-            </p>
-        {% else %}
-            <h6>This recipe is not in any category</h6>
-        {% endif %}
-        
+        <div id="categories">
+            {% if recipe.categories.all %}
+                <h6 id="categories-title">Categories</h6>
+                <p id="categories-list">
+                {% for category in recipe.categories.all %}
+                    <a><span class="badge badge badge-info" value="{{ category.title }}" id="category-{{ category.title }}">{{ category.title }}<button type="button" class="close" id="remove-category"><span>&times;</span></button></span></a>
+                {% endfor %}
+                </p>
+            {% else %}
+                <h6 id="categories-title">This recipe is not in any category</h6>
+                <p id="categories-list"></p>
+            {% endif %}
+            {% if user.is_authenticated and user == recipe.user.user or user.is_authenticated and perms.recipe.publish %}
+            <div class="row">
+                <div class="col-lg-9">
+                    <input type="text" class="form-control" id="field_add_category" placeholder="New category" />
+                </div>
+                <div class="col-lg-3">
+                    <input type="submit" class="form-control btn btn-success" id="btn-add-category" value="Add"/>    
+                </div>
+            </div>
+            <div class="btn-group" id="suggestion-box" style="display:none">
+            </div>
+            {% endif %}
+        </div>
+        <hr />
         <p>
         {% if recipe.description %}
             {{ recipe.description }}
@@ -65,7 +79,7 @@
     </div>
     <div class="col-lg-6">
         <div class="media">
-          <img class="mr-3 img-fluid" src="/media/{{ recipe.image }}" alt="Recipe picture">
+          <img class="mr-3 img-fluid" id="recipe_image" src="/media/{{ recipe.image }}" alt="Recipe picture">
         </div>
         <div>
           Posted by: {{ user }}
@@ -134,6 +148,77 @@ var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
                 xhr.setRequestHeader("X-CSRFToken", csrftoken);
             }
         }
+    });
+    
+    function updateSearch(searchBar, suggestionsBar, query) {
+        $.ajax({
+            url: '/search_ajax/',
+            type: "POST",
+            dataType: 'json',
+            data: {'target': 'category',
+                   'query': query
+                   },
+            success: function (data) {
+                results = Array.from(data.results);
+                $("#suggestion-box").empty();
+                if (results[0] === "Nothing found") {
+                    $("#suggestion-box").append('<button class="suggested-item btn btn-link">Nothing found</button>');
+                } else {
+                    $.each(results, function(index, value) {
+                        $("#suggestion-box").append('<button class="suggested-item btn btn-link">' + value + '</button>');
+                    }); 
+                }
+                $("#suggestion-box").show();
+                
+            }
+        });
+    }
+    
+    $("#categories").on('click', '#remove-category', function() {
+      category = $(this).parent().attr('value');
+      $.ajax({
+        type: 'POST',
+        url: '/recipe/{{ recipe.url }}/edit/',
+        data: {'action': 'remove_category',
+               'category_name': category},
+        dataType: 'json',
+        success: function (data) {
+            if (data.status === "success") {
+                $("#category-" + data.category_title).remove();
+            } else {
+                alert("Fail! Error:" + data.error);
+            }
+        }
+      });
+    });
+    
+    $("#btn-add-category").on('click', function() {
+      category = $("#field_add_category").val();;
+      $.ajax({
+        type: 'POST',
+        url: '/recipe/{{ recipe.url }}/edit/',
+        data: {'action': 'add_category',
+               'category_name': category},
+        dataType: 'json',
+        success: function (data) {
+            if (data.status === "success") {
+                $("#categories-list").append('<a><span class="badge badge badge-info" value="' + data.category_title + '" id="category-' + data.category_title + '">' + data.category_title + '<button type="button" class="close" id="remove-category"><span>&times;</span></button></span></a>');
+            } else {
+                alert("Fail! Error:" + data.error);
+            }
+        }
+      });
+    });
+    
+    $("#field_add_category").on('input', function() {
+      query = $(this).val();
+      updateSearch($(this), $("#suggestion-box"), query);
+    });
+    
+    $('#categories').on('click', '.suggested-item', function () {
+        suggested = $(this).text();
+        $("#field_add_category").val(suggested);
+        updateSearch($(this), $("#suggestion-box"), suggested);
     });
     
     $("#btn-comment-post").click(function () {
@@ -207,7 +292,8 @@ var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
         data: imageForm,
         success: function (data) {
             if (data.status === "success") {
-                alert("Sucess!");
+                alert("Image updated sucessfully!");
+                $("#recipe_image").attr('src', '/media/' + data.image_url)
             } else {
                 alert("Fail");
             }
