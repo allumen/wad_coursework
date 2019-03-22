@@ -21,20 +21,15 @@
     </div>
 	<div class="col-sm-6 border">
 	  <div class="row border">
-		<h5>Trending</h5>
-        {% if recipes %}
+		<i><b>Trending</i></b>
+		</br>
+		{% if recipes %}
             {% for recipe in recipes %}
                 <p><a href="{% url 'view_recipe' recipe_url=recipe.url %}">{{ recipe.title }} - {{recipe.date_created}}</a></p><br>
 			{% endfor %}
         {% else %}
             <p>There are no published recipes at the moment</p>
         {% endif %}
-    </div>
-	<div class="col-sm-6 border">
-	  <div class="row border">
-		<i><b>Trending</i></b>
-		</br>
-		<div class="well">Most popular recipe</div>
       </div>
 	  <div class="row border">
 		<i><b>Latest events</i></b>
