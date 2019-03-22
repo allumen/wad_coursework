@@ -1,0 +1,54 @@
+{% extends 'allgoodrecipes/base.html' %}
+{% load staticfiles %}
+
+{% block title_block %}
+    Register
+{% endblock %}
+
+{% block body_block %}
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col col-sm-4 align-self-center">
+    <h1>Registration</h1>
+        {% if registration_complete %}
+            <strong>Thank you for registering!</strong><br />
+            An email will be sent to you confirming your registration.<br /><br />
+            <a href="{% url 'profile' %}">View profile</a><br />
+            or <a href="{% url 'index' %}">return to Main page  </a><br />
+        {% else %}
+            {% if error_message %}
+                <div class="alert alert-danger" role="alert">
+                  {{ error_message }}
+                </div>
+            {% endif %}
+            <form id="user_form" method="post" action="{% url 'register' %}"
+                    enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <input type="text" class="form-control" name="{{ user_form.username.html_name }}" id="{{ user_form.username.id_for_label }}" placeholder="Username" >
+                </div>
+                <div class="form-group">
+                    <input type="email" class="form-control" name="{{ user_form.email.html_name }}" id="{{ user_form.email.id_for_label  }}" placeholder="Enter email">
+                </div>
+                <div class="form-group">
+                    <input type="password" class="form-control" name="{{ user_form.password.html_name }}" id="{{ user_form.password.id_for_label  }}" placeholder="Password">
+                </div>
+                <div class="form-group">
+                    <div class="custom-file">
+                        <label type="file" accept="image/*" name="{{ profile_form.picture.html_name }}" id="{{ profile_form.picture.id_for_label  }}" class="custom-file-label">Choose file</label>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success">Sign up</button>
+            </form>
+        {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script src="{% static "scripts/uploadFileLabelChanger.js" %}"></script>
+{% endblock %}
