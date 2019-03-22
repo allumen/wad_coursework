@@ -10,10 +10,25 @@ from django.contrib.auth.models import User
 
 
 def index(request):
+    recipes = Recipe.objects.order_by('-date_created')
+    categories = RecipeCategory.objects.all()
     recipes = category_list = Recipe.objects.order_by('-date_created')
+    if Recipe.date_created == datetime.now().date():
+        recipes2 = category_list = Recipe.objects.order_by('-date_created')[:3]
     #tips
-    return render(request, 'allgoodrecipes/index.html', context={'recipes':recipes})
+    return render(request, 'allgoodrecipes/index.html', context={'recipes':recipes, 'recipes2':recipes2})
 
+
+def recipe_search(request, category_title=None):
+    context_dict = {}
+
+    if category_title:
+        category = RecipeCategory.objects.get(title=category_title)
+        context_dict['recipes'] = Recipe.objects.filter(categories__in=[category]).order_by('-date_created')
+    else:
+        context_dict['recipes'] = Recipe.objects.all()
+
+    return render(request, 'allgoodrecipes/search.html', context=context_dict)
     
 def search_ajax(request):
     search_target = request.POST.get('target')
