@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.http import HttpResponse, HttpResponseRedirect, Http404, JsonResponse
 from allgoodrecipes.forms import UserForm, UserProfileForm, RecipeForm
-from allgoodrecipes.models import Recipe, UserProfile, Ingredient, Ingredient, Unit, Comment
+from allgoodrecipes.models import Recipe, RecipeCategory, UserProfile, Ingredient, Ingredient, Unit, Comment
 from django.contrib.auth.models import User
 
 def index(request):
@@ -13,6 +13,19 @@ def index(request):
     #tips
     return render(request, 'allgoodrecipes/index.html', context={'recipes':recipes})
 
+    
+def search_ajax(request):
+    search_target = request.POST.get('target')
+    query = request.POST.get('query')
+    response_data = {}
+    
+    if search_target == 'category':
+        suggestions = RecipeCategory.objects.filter(title__contains=query)[:5]
+        response_data['results'] = [s.title for s in suggestions]
+        if response_data['results'] == []:
+            response_data['results'] = ["Nothing found"]
+        return JsonResponse(response_data)
+        
     
 def view_recipe(request, recipe_url):
     try:
@@ -59,15 +72,35 @@ def edit_recipe(request, recipe_url):
                 recipe.image = image
                 recipe.save()
                 response_data["status"] = "success"
+                response_data["image_url"] = recipe.image.name
             else:
                 response_data["status"] = "fail"
-        
-        print('returning', response_data)
+        elif action == "add_category":
+            category_name = request.POST.get('category_name')
+            category = RecipeCategory.objects.get(title=category_name)
+            recipe.categories.add(category)
+            response_data["status"] = "success"
+            response_data["category_title"] = category.title
+        elif action == "remove_category":
+            category_name = request.POST.get('category_name')
+            category = RecipeCategory.objects.get(title=category_name)
+            recipe.categories.remove(category)
+            response_data["status"] = "success"
+            response_data["category_title"] = category.title
+        else:
+            response_data["status"] = "fail"
+            response_data["error"] = "Incorrect ajax, action undefined"
         return JsonResponse(response_data)
+        
     except Recipe.DoesNotExist:
         response_data["status"] = "fail"
+        response_data["error"] = "Recipe does not exist"
         return JsonResponse(response_data)
-     
+    except RecipeCategory.DoesNotExist:
+        response_data["status"] = "fail"
+        response_data["error"] = "Category does not exist"
+        return JsonResponse(response_data)
+    
 @login_required
 def add_recipe(request):
     add_successful = False
