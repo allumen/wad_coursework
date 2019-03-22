@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.http import HttpResponse, HttpResponseRedirect, Http404, JsonResponse
 from allgoodrecipes.forms import UserForm, UserProfileForm, RecipeForm
-from allgoodrecipes.models import Recipe, UserProfile, Ingredient, Ingredient, Unit
+from allgoodrecipes.models import Recipe, UserProfile, Ingredient, Ingredient, Unit, Comment
 from django.contrib.auth.models import User
 
 def index(request):
@@ -18,6 +18,7 @@ def view_recipe(request, recipe_url):
     try:
         recipe = Recipe.objects.get(url=recipe_url)
         ingredients = Ingredient.objects.all()
+        comments = Comment.objects.filter(post=recipe).order_by('-date')
         
         try:
             preparation_time = {1:"1-15 mins",
@@ -32,7 +33,7 @@ def view_recipe(request, recipe_url):
         except KeyError:
             preparation_time = "Corrupt value"
             
-        return render(request, 'allgoodrecipes/view_recipe.html', context={'recipe': recipe, 'ingredients': ingredients, 'preparation_time': preparation_time})
+        return render(request, 'allgoodrecipes/view_recipe.html', context={'recipe': recipe, 'ingredients': ingredients, 'preparation_time': preparation_time, 'comments': comments})
     except Recipe.DoesNotExist:
         raise Http404
 
@@ -41,13 +42,27 @@ def edit_recipe(request, recipe_url):
     response_data = {}
     
     try:
-        action = request.GET.get('action', None)
+        action = request.GET.get('action')
+        if action is None:
+            action = request.POST.get('action')
+        
+        recipe = Recipe.objects.get(url=recipe_url)
+            
         if action == "change_public":
-            recipe = Recipe.objects.get(url=recipe_url)
             recipe.public = not recipe.public
             recipe.save()
             
             response_data["status"] = "success"
+        elif action == "update_image":
+            image = request.FILES.get('imageFile')
+            if image is not None:
+                recipe.image = image
+                recipe.save()
+                response_data["status"] = "success"
+            else:
+                response_data["status"] = "fail"
+        
+        print('returning', response_data)
         return JsonResponse(response_data)
     except Recipe.DoesNotExist:
         response_data["status"] = "fail"
@@ -215,14 +230,30 @@ def user_login(request):
 def user_logout(request):
     logout(request)
     return HttpResponseRedirect(reverse('index'))
-
+    
 @login_required
-def add_comment(request, pk):
-  post = get_object_or_404(Post, pk=pk)
-  comment = comment(
-      user = UserProfile.objects.get(request.user),
-      text = request.POST['comment'],
-      post = Post.objects.get(request.title),
-      )
-  comment.save()
-  return HttpResponseRedirect(reverse('allgoodrecipes.view_recipe'))
+def add_comment(request):
+    try:
+        url = request.POST.get('post_url')
+        post = Recipe.objects.get(url=url)
+        text = request.POST.get('comment_text')
+        user = UserProfile.objects.get(user=request.user)
+        if text is None or text == "" or text.isspace() or len(text.strip()) < 10:
+            raise ValueError
+        
+        comment = Comment(
+          user = user,
+          text = text,
+          post = post,
+          )
+        comment.save()
+        
+        return JsonResponse({"status": "success",
+                             "new_comment_user": user.user.username,
+                             "new_comment_date": comment.date.strftime("%B-%d, %Y, %I:%M%p")})
+    except Recipe.DoesNotExist:
+        return JsonResponse({"status": "fail",
+                             "error": "postNotFound"})
+    except ValueError:
+        return JsonResponse({"status": "fail",
+                             "error": "commentTextEmpty or too short (less than 10 chars)"})

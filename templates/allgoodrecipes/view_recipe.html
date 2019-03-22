@@ -29,7 +29,12 @@
                 {% else %}
                     <button type="submit" class="btn btn-warning" id="publish_recipe">Publish recipe</button>
                 {% endif %}
-              </div>
+                <div class="custom-file">
+                    <input type="file" accept="image/*" class="custom-file-input" name="new_picture" id="new_picture_upload" />
+                    <label class="custom-file-label" for="new_picture">Choose file</label>
+                </div>
+                <button type="submit" class="btn btn-info" id="update_image">Update image</button>
+            </div>
             {% endif %}
             <hr />
         
@@ -84,11 +89,73 @@
     </div>
   </div>
   <hr />
+  <div class="row">
+    <div class="col-lg-12">
+        <h4>Comments</h4>
+        {% if True %}
+        <div class="form-group">
+            <label for="textfield-comment-text">Leave new comment</label>
+            <textarea class="form-control mb-3" name="" id="textfield-comment-text" rows="3"></textarea>
+        </div>
+        <input type="submit" class="btn btn-info btn-sm btn-block" name="submit" id="btn-comment-post" value="Post comment" />
+        {% endif %}
+    </div>
+  </div>
+  <div id="comments-block">
+    {% for comment in comments %}
+    <div class="comment row p-3">
+        <div class="col-lg-3 p-auto border rounded">
+        <p>Posted by <b>{{ comment.user }}</b><br>on {{ comment.date }}</p>
+        </div>
+        <div class="col-lg-9 p-auto border rounded">
+        {{ comment.text }}
+        </div>
+    </div>
+    {% endfor %}
+  </div>
 </div>
 {% endblock %}
 
 {% block javascript %}
-  <script>
+{% csrf_token %}
+<script type="text/javascript">
+// using jQuery
+var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+</script>
+<script>
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+    
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
+    });
+    
+    $("#btn-comment-post").click(function () {
+      text = $("#textfield-comment-text").val();
+      $.ajax({
+        url: '/add_comment/',
+        type: "POST",
+        dataType: 'json',
+        data: {'action': 'addComment',
+               'post_url': '{{ recipe.url }}',
+               'comment_text': text
+                },
+        success: function (data) {
+            if (data.status === "success") {
+                $("#comments-block").prepend('<div class="comment row p-3"><div class="col-lg-3 p-auto border rounded"><p>Posted by <b>'+ data.new_comment_user + "</b><br>on " + data.new_comment_date +'</p></div><div class="col-lg-9 p-auto border rounded">' + text + '</div></div>')
+            } else {
+                alert("Fail! Error:" + data.error);
+            }
+        }
+      });
+    });
+
     $("#publish_recipe").click(function () {      
       $.ajax({
         url: '/recipe/{{ recipe.url }}/edit/',
@@ -119,5 +186,36 @@
         }
       });
     });
+    
+    $("#update_image").click(function () {      
+        image = $('#new_picture_upload')[0];
+        
+        var imageForm = new FormData();
+        
+        if (image && image.files[0]) {
+            imageForm.append('action', 'update_image');
+            imageForm.append('imageFile', image.files[0]);
+        } else {
+            alert("error!");
+            return false;
+        }
+        
+        
+      $.ajax({
+        url: '/recipe/{{ recipe.url }}/edit/',
+        type: "POST",
+        data: imageForm,
+        success: function (data) {
+            if (data.status === "success") {
+                alert("Sucess!");
+            } else {
+                alert("Fail");
+            }
+        },
+        contentType: false,
+        processData: false
+      });
+    });
   </script>
+  <script src="{% static "scripts/uploadFileLabelChanger.js" %}"></script>
 {% endblock %}
