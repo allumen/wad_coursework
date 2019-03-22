@@ -22,6 +22,16 @@ def index(request):
     #tips
     return render(request, 'allgoodrecipes/index.html', context={'recipes':recipes})
 
+def recipe_search(request, category_title=None):
+    context_dict = {}
+
+    if category_title:
+        category = RecipeCategory.objects.get(title=category_title)
+        context_dict['recipes'] = Recipe.objects.filter(categories__in=[category]).order_by('-date_created')
+    else:
+        context_dict['recipes'] = Recipe.objects.all()
+
+    return render(request, 'allgoodrecipes/search.html', context=context_dict)
     
 def search_ajax(request):
     search_target = request.POST.get('target')
