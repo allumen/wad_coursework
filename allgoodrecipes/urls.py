@@ -12,6 +12,8 @@ urlpatterns = [
         path('publications/', views.profile_publications),
         path('comments/', views.profile_comments),
     ])),
+    path('recipe_search/', views.recipe_search, name='recipe_search'),
+    path('recipe_search/<category_title>/', views.recipe_search, name='recipe_search'),
     path('search_ajax/', views.search_ajax, name='search_ajax'),
     path('add_comment/', views.add_comment, name = 'add_comment'),
     path('register/', views.register, name='register'),

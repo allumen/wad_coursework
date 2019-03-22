@@ -12,15 +12,20 @@
 <div class="container border">
   <div class="row border">
     <div class="col-sm-3 border">
-        {% if recipes %}
-			<i><b>Browse recipes</i></b>
-			<div class="well">
-            {% for recipe in recipes %}
-				
-                <a href="{% url 'view_recipe' recipe_url=recipe.url %}"><p>{{ recipe.title }} - {{recipe.date_created}}</p></a>
-				
+        <h5>Categories</h5>
+        {% if categories %}
+            {% for category in categories %}
+                <a href="{% url 'recipe_search' category_title=category.title %}">{{ category.title }}</a><br>
 			{% endfor %}
-			</div>
+        {% endif %}
+    </div>
+	<div class="col-sm-6 border">
+	  <div class="row border">
+		<h5>Trending</h5>
+        {% if recipes %}
+            {% for recipe in recipes %}
+                <p><a href="{% url 'view_recipe' recipe_url=recipe.url %}">{{ recipe.title }} - {{recipe.date_created}}</a></p><br>
+			{% endfor %}
         {% else %}
             <p>There are no published recipes at the moment</p>
         {% endif %}
@@ -34,7 +39,13 @@
 	  <div class="row border">
 		<i><b>Latest events</i></b>
 		</br>
-		<div class="well">newest recipes and competitions</div>
+		{% if recipes2 %}
+		  {% for recipe in recipes2 %}
+		    <a href="{% url 'view_recipe' recipe_url=recipe.url %}"><p>{{ recipe.title }} - {{recipe.date_created}}</p></a>
+		  {% endfor %}
+		{% else %}
+		  <p>There are no recipes published today!</p>
+		{% endif %}
 	  </div>
 	</div>
 	<div class="col-sm-3 border">
