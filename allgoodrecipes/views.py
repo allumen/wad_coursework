@@ -9,10 +9,22 @@ from allgoodrecipes.models import Recipe, RecipeCategory, UserProfile, Ingredien
 from django.contrib.auth.models import User
 
 def index(request):
-    recipes = category_list = Recipe.objects.order_by('-date_created')
-    #tips
-    return render(request, 'allgoodrecipes/index.html', context={'recipes':recipes})
+    recipes = Recipe.objects.order_by('-date_created')
+    categories = RecipeCategory.objects.all()
+    return render(request, 'allgoodrecipes/index.html', context={'recipes':recipes, 'categories': categories})
 
+    
+def recipe_search(request, category_title=None):
+    context_dict = {}
+    
+    if category_title:
+        category = RecipeCategory.objects.get(title=category_title)
+        context_dict['recipes'] = Recipe.objects.filter(categories__in=[category]).order_by('-date_created')
+    else:
+        context_dict['recipes'] = Recipe.objects.all()
+    
+    return render(request, 'allgoodrecipes/search.html', context=context_dict)
+    
     
 def search_ajax(request):
     search_target = request.POST.get('target')
@@ -49,6 +61,7 @@ def view_recipe(request, recipe_url):
         return render(request, 'allgoodrecipes/view_recipe.html', context={'recipe': recipe, 'ingredients': ingredients, 'preparation_time': preparation_time, 'comments': comments})
     except Recipe.DoesNotExist:
         raise Http404
+
 
 @login_required
 def edit_recipe(request, recipe_url):
@@ -100,7 +113,8 @@ def edit_recipe(request, recipe_url):
         response_data["status"] = "fail"
         response_data["error"] = "Category does not exist"
         return JsonResponse(response_data)
-    
+
+        
 @login_required
 def add_recipe(request):
     add_successful = False

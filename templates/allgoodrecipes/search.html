@@ -1,0 +1,42 @@
+{% extends 'allgoodrecipes/base.html' %}
+{% load staticfiles %}
+
+{% block title_block %}
+
+{% endblock %}
+
+{% block body_block %}
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col">
+        <h1>Search</h1>
+        {% for recipe in recipes %}
+        <div class="comment row p-2">
+            <div class="col-lg-1 mr-1 border rounded">
+              <img class="mr-3 img-fluid" id="recipe_image" src="/media/{{ recipe.image }}" alt="Recipe picture">
+            </div>
+            <div class="col-lg-5 p-auto border rounded">
+                <h4>{{ recipe.title }}</h4>
+                <h6>{{ recipe.description }}</h6>
+                <p>
+                    {% if recipe.categories.all %}
+                        <div id="categories-list">
+                        {% for category in recipe.categories.all %}
+                            <a><span class="badge badge badge-info" value="{{ category.title }}" id="category-{{ category.title }}">{{ category.title }}</span></a>
+                        {% endfor %}
+                        </div>
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-lg-5 p-auto border rounded">
+                <p>Posted by <b>{{ recipe.user.user.username }}</b> on {{ recipe.date_created }}</p>
+                <p><a class="btn btn-link btn-sm" href="{% url 'view_recipe' recipe_url=recipe.url %}">View recipe</a></p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

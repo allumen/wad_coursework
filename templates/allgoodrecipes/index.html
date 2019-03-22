@@ -12,26 +12,25 @@
 <div class="container border">
   <div class="row border">
     <div class="col-sm-3 border">
-        {% if recipes %}
-			<i><b>Browse recipes</i></b>
-			<div class="well">
-            {% for recipe in recipes %}
-				
-                <a href="{% url 'view_recipe' recipe_url=recipe.url %}"><p>{{ recipe.title }} - {{recipe.date_created}}</p></a>
-				
+        <h5>Categories</h5>
+        {% if categories %}
+            {% for category in categories %}
+                <a href="{% url 'recipe_search' category_title=category.title %}">{{ category.title }}</a><br>
 			{% endfor %}
-			</div>
-        {% else %}
-            <p>There are no published recipes at the moment</p>
         {% endif %}
     </div>
 	<div class="col-sm-6 border">
 	  <div class="row border">
-	    <div class="col-sm-6 border">
-		<i><b>Trending</i></b>
+		<h5>Trending</h5>
+        {% if recipes %}
+            {% for recipe in recipes %}
+                <p><a href="{% url 'view_recipe' recipe_url=recipe.url %}">{{ recipe.title }} - {{recipe.date_created}}</a></p><br>
+			{% endfor %}
+        {% else %}
+            <p>There are no published recipes at the moment</p>
+        {% endif %}
 		</br>
-		<div class="well">Most popular recipe</div></div>
-      </div>
+        </div>
 	  <div class="row border">
 	  <div class="col-sm-6 border">
 		<i><b>Latest events</i></b>
