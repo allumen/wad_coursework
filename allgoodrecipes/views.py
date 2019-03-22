@@ -264,7 +264,7 @@ def sitemap(request, sitemaps, section=None,
     
     
 def contact(request):
-    pass
+    return render(request, 'contact.html', {})
     
 def register(request):
     # tell the template if registration successful
