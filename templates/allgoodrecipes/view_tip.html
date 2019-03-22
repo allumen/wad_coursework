@@ -1,0 +1,265 @@
+{% extends 'allgoodrecipes/base.html' %}
+{% load staticfiles %}
+
+{% block title_block %}
+    {{ tip.title }}
+{% endblock %}
+
+{% block body_block %}
+
+<div class="container">
+  <div class="row">
+    <div class="col-lg-12">
+        <div class="mb-3">
+            <h3 class="m-0">{{ tip.title }}</h3>
+            {% if user.is_authenticated and user == tip.user.user or user.is_authenticated and perms.tip.publish %}
+                {% if tip.public %}
+                    <span class="badge badge-success" id="public_label" value="public">Published</span>
+                {% else %}
+                    <span class="badge badge-warning" id="public_label" value="hidden">Hidden from public</span>
+                {% endif %}
+            {% endif %}
+        </div>
+        <hr />
+        {% if user.is_authenticated and user == tip.user.user or user.is_authenticated and perms.tip.publish %}
+            <div class="">
+              <h5>Editing</h5>
+                {% if tip.public %}
+                    <button type="submit" class="btn btn-info" id="publish_tip">Hide tip</button>
+                {% else %}
+                    <button type="submit" class="btn btn-warning" id="publish_recipe">Publish tip</button>
+                {% endif %}
+                <div class="custom-file mt-3 mb-1">
+                    <input type="file" accept="image/*" class="custom-file-input" name="new_picture" id="new_picture_upload" />
+                    <label class="custom-file-label" for="new_picture">Choose file</label>
+                </div>
+                <button type="submit" class="btn btn-info" id="update_image">Update image</button>
+            </div>
+            {% endif %}
+            <hr />
+        <div id="categories">
+            {% if tip.categories.all %}
+                <h6 id="categories-title">Categories</h6>
+                <p id="categories-list">
+                {% for category in tip.categories.all %}
+                    <a><span class="badge badge badge-info" value="{{ category.title }}" id="category-{{ category.title }}">{{ category.title }}<button type="button" class="close" id="remove-category"><span>&times;</span></button></span></a>
+                {% endfor %}
+                </p>
+            {% else %}
+                <h6 id="categories-title">This tip is not in any category</h6>
+                <p id="categories-list"></p>
+            {% endif %}
+            {% if user.is_authenticated and user == tip.user.user or user.is_authenticated and perms.tip.publish %}
+            <div class="row">
+                <div class="col-lg-9">
+                    <input type="text" class="form-control" id="field_add_category" placeholder="New category" />
+                </div>
+                <div class="col-lg-3">
+                    <input type="submit" class="form-control btn btn-success" id="btn-add-category" value="Add"/>    
+                </div>
+            </div>
+            <div class="btn-group" id="suggestion-box" style="display:none">
+            </div>
+            {% endif %}
+        </div>
+        <hr />
+        <hr />
+        <hr />
+        <h4>Instructions</h4>
+        <p>{{ tip.instructions }}</p>
+    </div>
+    <div class="col-lg-6">
+        <div class="media">
+          <img class="mr-3 img-fluid" id="tip_image" src="/media/{{ tip.image }}" alt="tip picture">
+        </div>
+        <div>
+          Posted by: {{ user }}
+          on {{ tip.date_created }}
+        </div>
+        <hr />
+        
+        {% if tips %}
+            <h4>Tips</h4>
+        {% endif %}
+    </div>
+  </div>
+  <hr />
+
+
+{% endblock %}
+
+{% block javascript %}
+{% csrf_token %}
+<script type="text/javascript">
+// using jQuery
+var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
+</script>
+<script>
+    function csrfSafeMethod(method) {
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+    
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            }
+        }
+    });
+    
+    function updateSearch(searchBar, suggestionsBar, query) {
+        $.ajax({
+            url: '/search_ajax/',
+            type: "POST",
+            dataType: 'json',
+            data: {'target': 'category',
+                   'query': query
+                   },
+            success: function (data) {
+                results = Array.from(data.results);
+                $("#suggestion-box").empty();
+                if (results[0] === "Nothing found") {
+                    $("#suggestion-box").append('<button class="suggested-item btn btn-link">Nothing found</button>');
+                } else {
+                    $.each(results, function(index, value) {
+                        $("#suggestion-box").append('<button class="suggested-item btn btn-link">' + value + '</button>');
+                    }); 
+                }
+                $("#suggestion-box").show();
+                
+            }
+        });
+    }
+    
+    $("#categories").on('click', '#remove-category', function() {
+      category = $(this).parent().attr('value');
+      $.ajax({
+        type: 'POST',
+        url: '/recipe/{{ recipe.url }}/edit/',
+        data: {'action': 'remove_category',
+               'category_name': category},
+        dataType: 'json',
+        success: function (data) {
+            if (data.status === "success") {
+                $("#category-" + data.category_title).remove();
+            } else {
+                alert("Fail! Error:" + data.error);
+            }
+        }
+      });
+    });
+    
+    $("#btn-add-category").on('click', function() {
+      category = $("#field_add_category").val();;
+      $.ajax({
+        type: 'POST',
+        url: '/recipe/{{ recipe.url }}/edit/',
+        data: {'action': 'add_category',
+               'category_name': category},
+        dataType: 'json',
+        success: function (data) {
+            if (data.status === "success") {
+                $("#categories-list").append('<a><span class="badge badge badge-info" value="' + data.category_title + '" id="category-' + data.category_title + '">' + data.category_title + '<button type="button" class="close" id="remove-category"><span>&times;</span></button></span></a>');
+            } else {
+                alert("Fail! Error:" + data.error);
+            }
+        }
+      });
+    });
+    
+    $("#field_add_category").on('input', function() {
+      query = $(this).val();
+      updateSearch($(this), $("#suggestion-box"), query);
+    });
+    
+    $('#categories').on('click', '.suggested-item', function () {
+        suggested = $(this).text();
+        $("#field_add_category").val(suggested);
+        updateSearch($(this), $("#suggestion-box"), suggested);
+    });
+    
+    $("#btn-comment-post").click(function () {
+      text = $("#textfield-comment-text").val();
+      $.ajax({
+        url: '/add_comment/',
+        type: "POST",
+        dataType: 'json',
+        data: {'action': 'addComment',
+               'post_url': '{{ recipe.url }}',
+               'comment_text': text
+                },
+        success: function (data) {
+            if (data.status === "success") {
+                $("#comments-block").prepend('<div class="comment row p-3"><div class="col-lg-3 p-auto border rounded"><p>Posted by <b>'+ data.new_comment_user + "</b><br>on " + data.new_comment_date +'</p></div><div class="col-lg-9 p-auto border rounded">' + text + '</div></div>')
+            } else {
+                alert("Fail! Error:" + data.error);
+            }
+        }
+      });
+    });
+
+    $("#publish_recipe").click(function () {      
+      $.ajax({
+        url: '/recipe/{{ recipe.url }}/edit/',
+        data: {'action': 'change_public'},
+        dataType: 'json',
+        success: function (data) {
+          if (data.status === "success") {
+            if($("#public_label").attr('value') === "public") {
+                $("#public_label").removeClass("badge-success");
+                $("#public_label").addClass("badge-warning");
+                $("#public_label").text("Hidden from public");
+                
+                $("#publish_recipe").removeClass("btn-info");
+                $("#publish_recipe").addClass("btn-warning");
+                $("#publish_recipe").text("Publish recipe");
+            } else {
+                $("#public_label").removeClass("badge-warning");
+                $("#public_label").addClass("badge-success");
+                $("#public_label").text("Published");
+                
+                $("#publish_recipe").removeClass("btn-warning");
+                $("#publish_recipe").addClass("btn-info");
+                $("#publish_recipe").text("Hide recipe");
+            }
+          } else {
+            alert("An error occured");
+          }
+        }
+      });
+    });
+    
+    $("#update_image").click(function () {      
+        image = $('#new_picture_upload')[0];
+        
+        var imageForm = new FormData();
+        
+        if (image && image.files[0]) {
+            imageForm.append('action', 'update_image');
+            imageForm.append('imageFile', image.files[0]);
+        } else {
+            alert("error!");
+            return false;
+        }
+        
+        
+      $.ajax({
+        url: '/recipe/{{ recipe.url }}/edit/',
+        type: "POST",
+        data: imageForm,
+        success: function (data) {
+            if (data.status === "success") {
+                alert("Image updated sucessfully!");
+                $("#recipe_image").attr('src', '/media/' + data.image_url)
+            } else {
+                alert("Fail");
+            }
+        },
+        contentType: false,
+        processData: false
+      });
+    });
+  </script>
+  <script src="{% static "scripts/uploadFileLabelChanger.js" %}"></script>
+{% endblock %}
