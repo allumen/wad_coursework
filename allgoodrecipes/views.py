@@ -58,7 +58,16 @@ def view_recipe(request, recipe_url):
         return render(request, 'allgoodrecipes/view_recipe.html', context={'recipe': recipe, 'ingredients': ingredients, 'preparation_time': preparation_time, 'comments': comments})
     except Recipe.DoesNotExist:
         raise Http404
-
+		
+def view_tip(request, tip_url):
+    try:
+        tip = Tip.objects.get(url=tip_url)
+		
+        return render(request, 'allgoodrecipes/view_recipe.html', context={'recipe': recipe})
+    except Tip.DoesNotExist:
+        raise Http404
+		
+		
 @login_required
 def edit_recipe(request, recipe_url):
     response_data = {}

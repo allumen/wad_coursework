@@ -88,6 +88,38 @@ class Unit(models.Model):
     
     def __str__(self):
         return self.title
+		
+class Tip(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(UserProfile, on_delete=models.PROTECT)
+    text = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
+    title = models.CharField(max_length=200)
+    url = models.CharField(max_length=200, unique=True)
+    url_chosen = models.BooleanField(default=False)
+    instructions = models.TextField()
+    
+    date_created = models.DateField(auto_now_add=True)
+    public = models.BooleanField(default=False)
+    
+    objects = models.Manager()
+	
+    def save(self, *args, **kwargs):    
+        if not self.url_chosen:
+            url_variant = slugify(self.title + " " + str(datetime.now().date()))
+            
+            # avoid url collisions by appending an int if the url exists already
+            same_urls = Recipe.objects.filter(url__contains=url_variant)
+            if len(same_urls) > 0:
+                url_variant = "{}-{}".format(url_variant, len(same_urls))
+                
+            self.url = url_variant
+            self.url_chosen = True
+            
+        super(Tip, self).save(*args, **kwargs)
+	
+    def __str__(self):
+        return self.title
 
 
 class Comment(models.Model):
