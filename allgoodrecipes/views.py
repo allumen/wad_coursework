@@ -10,8 +10,10 @@ from django.contrib.auth.models import User
 
 def index(request):
     recipes = category_list = Recipe.objects.order_by('-date_created')
+    if Recipe.date_created == datetime.now().date():
+        recipes2 = category_list = Recipe.objects.order_by('-date_created')[:3]
     #tips
-    return render(request, 'allgoodrecipes/index.html', context={'recipes':recipes})
+    return render(request, 'allgoodrecipes/index.html', context={'recipes':recipes, 'recipes2':recipes2})
 
     
 def search_ajax(request):
