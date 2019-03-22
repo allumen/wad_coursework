@@ -7,6 +7,7 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404, JsonRespons
 from allgoodrecipes.forms import UserForm, UserProfileForm, RecipeForm
 from allgoodrecipes.models import Recipe, RecipeCategory, UserProfile, Ingredient, Ingredient, Unit, Comment
 from django.contrib.auth.models import User
+import datetime
 
 
 def index(request):
