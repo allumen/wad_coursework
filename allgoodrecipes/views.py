@@ -15,7 +15,7 @@ def index(request):
     categories = RecipeCategory.objects.all()
     recipes = category_list = Recipe.objects.order_by('-date_created')
 
-    return render(request, 'allgoodrecipes/index.html', context={'recipes':recipes, 'recipes2':recipes2})
+    return render(request, 'allgoodrecipes/index.html', context={'recipes':recipes})
 
 
 def recipe_search(request, category_title=None):
