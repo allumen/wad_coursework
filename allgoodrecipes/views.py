@@ -264,11 +264,7 @@ def sitemap(request, sitemaps, section=None,
     
     
 def contact(request):
-    if request.session.test_cookie_worked():
-        print("TEST COOKIE WORKED!")
-        request.session.delete_test_cookie()
-    return HttpResponce("AAA <a href = 'allgoodrecipes/contact.html'>Contact page</a>")
-    #return render(request, 'allgoodrecipes/contact.html', {})
+    return HttpResponseRedirect('contact/')
     
 def register(request):
     # tell the template if registration successful
