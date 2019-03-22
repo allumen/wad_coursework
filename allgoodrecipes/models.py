@@ -12,6 +12,7 @@ class UserProfile(models.Model):
     def __str__(self):
         return self.user.username
 
+
 class RecipeCategory(models.Model):
     title = models.CharField(primary_key=True, max_length=128)
     description = models.CharField(max_length=200, blank=True)
@@ -70,14 +71,16 @@ class Ingredient(models.Model):
     
     def __str__(self):  
         return self.title
-    
+
+
 class Unit(models.Model):
     title = models.CharField(max_length=128, unique=True)
     short = models.CharField(max_length=4, unique=True)
     
     def __str__(self):
         return self.title
-    
+
+
 class Comment(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(UserProfile, on_delete=models.PROTECT)

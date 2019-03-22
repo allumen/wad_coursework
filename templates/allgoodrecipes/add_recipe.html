@@ -6,30 +6,116 @@
 {% endblock %}
 
 {% block body_block %}
-<h1>Add a new recipe</h1>
-
-<div class="container border">
-  <div class="row border">
-    <div class="col-sm border">
-        {% if error_message %}
-            <div class="alert alert-danger" role="alert">
-              {{ error_message }}
-            </div>
-        {% endif %}
-        <form id="recipe_form" method="post" action="{% url 'add_recipe' %}"
-                enctype="multipart/form-data">
-            {% csrf_token %}
-            
-            <h2>Recipe details</h2>
-            {{ recipe_form.as_p }}
-            <h2>Ingredients</h2>
-            <div id="ingredients">
-            {{ ingredients_set_form.as_p }}
-            </div>
-            <input type="hidden" name="recipe_url" value="{{ recipe_url }}">
-            <input type="submit" name="submit" value="Add a recipe" />
-        </form>
+<div class="m-4 container">
+    <div class="row">
+      <h1>Add a new recipe</h1>
     </div>
-  </div>
+    <hr />
+    <div class="row justify-content-center">
+        {% if add_successful %}
+        <div class="col-sm-6 m-5">
+            <div class="card border-success p-5" style="max-width: 40rem;">
+                <h3 class="text-center">The recipe has been added successfully!</h3>
+                <hr />
+                <a class="btn btn-primary btn-lg btn-block" href="{% url 'add_recipe' %}">Post another Recipe</a>
+                <a class="btn btn-link btn-lg btn-block" href="{% url 'profile' %}">or return to profile</a>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-sm border">
+            {% if error_message %}
+                <div class="alert alert-danger" role="alert">
+                  {{ error_message }}
+                </div>
+            {% endif %}
+            <form id="recipe_form" method="post" action="{% url 'add_recipe' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <!-- Recipe details -->
+                <h2>Recipe details</h2>
+                <label for="{{ recipe_form.title.id_for_label }}">Recipe title</label>
+                <input type="text" class="form-control mb-3" name="{{ recipe_form.title.html_name }}" id="{{ recipe_form.title.id_for_label }}" placeholder="Name your dish" required>
+                <label for="{{ recipe_form.description.id_for_label }}">Description</label>
+                <input type="text" class="form-control mb-3" name="{{ recipe_form.description.html_name }}" id="{{ recipe_form.description.id_for_label }}" placeholder="Few more words" required>
+                
+                <div class="form-row">
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label for="{{ recipe_form.servings_number.id_for_label }}">Number of servings</label>
+                            <select class="form-control" name="{{ recipe_form.servings_number.html_name }}" id="{{ recipe_form.servings_number.id_for_label }}">
+                              <option value="1">1</option>
+                              <option value="2">2</option>
+                              <option value="3">3</option>
+                              <option value="4">4</option>
+                              <option value="5">5</option>
+                              <option value="6">6</option>
+                              <option value="7">7</option>
+                              <option value="8">8</option>
+                              <option value="9">9</option>
+                              <option value="10">10</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="form-group">
+                            <label for="{{ recipe_form.preparation_time.id_for_label }}">Cooking time</label>
+                            <select class="form-control" name="{{ recipe_form.preparation_time.html_name }}" id="{{ recipe_form.preparation_time.id_for_label }}">
+                              <option value="1">1-15 mins</option>
+                              <option value="2">15-30 mins</option>
+                              <option value="3">30-45 mins</option>
+                              <option value="4">45-60 mins</option>
+                              <option value="5">1-1.5 hrs</option>
+                              <option value="6">1.5-2 hrs</option>
+                              <option value="7">2-3 hrs</option>
+                              <option value="8">3-4 hrs</option>
+                              <option value="9">4+ hrs</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="{{ recipe_form.instructions.id_for_label }}">Cooking instructions</label>
+                    <textarea class="form-control mb-3" name="{{ recipe_form.instructions.html_name }}" id="{{ recipe_form.instructions.id_for_label }}" rows="3"></textarea>
+                </div>
+                <div class="input-group mb-3">
+                  <div class="custom-file">
+                    <input type="file" accept="image/*" class="custom-file-input" name="{{ recipe_form.image.html_name }}" id="{{ recipe_form.image.id_for_label }}">
+                    <label class="custom-file-label" for="{{ recipe_form.image.id_for_label }}">Choose file</label>
+                  </div>
+                </div>
+                
+                <!-- Ingredients -->
+                <h2>Ingredients</h2>
+                <div id="ingredients">
+                    {% for form in ingredients_set_form %}
+                        <div class="form-row ingredient">
+                            <div class="input-group mb-3" id="ingredient-{{ form.title.id_for_label }}">
+                              <input type="text" class="form-control" name="{{ form.title.html_name }}" id="{{ form.title.id_for_label }}" placeholder="Ingredient name">
+                              <input type="number" class="form-control" name="{{ form.quantity.html_name }}" id="{{ form.quantity.id_for_label }}" placeholder="Quantity"></input>
+                              <select class="form-control" name="{{ form.units.html_name }}" id="{{ form.units.id_for_label }}" placeholder="units">
+                                {% for unit in unit_choices %}
+                                    <option value="{{ unit.title }}">{{ unit.title }}</option>
+                                {% endfor %}
+                              </select>
+                              <div class="input-group-append">
+                                <button class="btn btn-outline-danger button-remove" type="button" value="{{ form.title.id_for_label }}">Remove</button>
+                              </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    <button type="button" class="button-add btn btn-info mb-3">Add ingredient</button>
+                </div>
+                {{ ingredients_set_form.management_form }}
+                <input type="hidden" name="recipe_url" value="{{ recipe_url }}">
+                <input type="submit" class="btn btn-success btn-lg btn-block" name="submit" value="Add a recipe" />
+            </form>
+        </div>
+        {% endif %}
+    </div>
 </div>
+{% endblock %}
+
+{% block javascript %}
+<script src="{% static "scripts/uploadFileLabelChanger.js" %}"></script>
+<script src="{% static "scripts/ingredientListManager.js" %}"></script>
 {% endblock %}

@@ -3,9 +3,9 @@ from django.forms import inlineformset_factory
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
-from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.http import HttpResponse, HttpResponseRedirect, Http404, JsonResponse
 from allgoodrecipes.forms import UserForm, UserProfileForm, RecipeForm
-from allgoodrecipes.models import Recipe, UserProfile, Ingredient, Ingredient
+from allgoodrecipes.models import Recipe, UserProfile, Ingredient, Ingredient, Unit
 from django.contrib.auth.models import User
 
 def index(request):
@@ -18,20 +18,53 @@ def view_recipe(request, recipe_url):
     try:
         recipe = Recipe.objects.get(url=recipe_url)
         ingredients = Ingredient.objects.all()
-        print(ingredients)
-        return render(request, 'allgoodrecipes/view_recipe.html', context={'recipe': recipe, 'ingredients': ingredients})
+        
+        try:
+            preparation_time = {1:"1-15 mins",
+                                2:"15-30 mins",
+                                3:"30-45 mins",
+                              4:"45-60 mins",
+                              5:"1-1.5 hrs",
+                              6:"1.5-2 hrs",
+                              7:"2-3 hrs",
+                              8:"3-4 hrs",
+                              9:"4+ hrs"}[recipe.preparation_time]
+        except KeyError:
+            preparation_time = "Corrupt value"
+            
+        return render(request, 'allgoodrecipes/view_recipe.html', context={'recipe': recipe, 'ingredients': ingredients, 'preparation_time': preparation_time})
     except Recipe.DoesNotExist:
         raise Http404
+
+@login_required
+def edit_recipe(request, recipe_url):
+    response_data = {}
     
+    try:
+        action = request.GET.get('action', None)
+        if action == "change_public":
+            recipe = Recipe.objects.get(url=recipe_url)
+            recipe.public = not recipe.public
+            recipe.save()
+            
+            response_data["status"] = "success"
+        return JsonResponse(response_data)
+    except Recipe.DoesNotExist:
+        response_data["status"] = "fail"
+        return JsonResponse(response_data)
+     
 @login_required
 def add_recipe(request):
     add_successful = False
+    IngredientsFormSet = inlineformset_factory(Recipe, Ingredient, exclude=("delete",), can_delete=False, extra=20, # extra specifies number of forms in set to render by default
+                                               min_num=1, validate_min=True, max_num=20, validate_max=True)
+    context_dict = {}
     
-    IngredientsFormSet = inlineformset_factory(Recipe, Ingredient, exclude=("delete",), can_delete=False, extra=10)
-    
-    # process first stage
+    # details submitted, try to add a new recipe
     if request.method == 'POST':
-        recipe_form = RecipeForm(data=request.POST)
+        # get recipe details
+        recipe_form = RecipeForm(request.POST, request.FILES)
+        
         if recipe_form.is_valid():     
             # delay saving of new recipe object
             recipe = recipe_form.save(commit=False)  
@@ -44,31 +77,28 @@ def add_recipe(request):
             
             if ingredients_form.is_valid():
                 ingredients_form.save()
-            else:
-                context_dict = {
-                            'error_message': ingredients_form.errors}
-                return render(request, 'allgoodrecipes/add_recipe.html', context=context_dict)
-            
-            context_dict = {
+                context_dict = {'add_successful':add_successful,
                             'ingredients_set_form': ingredients_form,
                             'recipe_url': recipe.url}
-                      
-            return render(request, 'allgoodrecipes/add_recipe.html', context=context_dict)
+                # Success!
+                return render(request, 'allgoodrecipes/add_recipe.html', context=context_dict)
+            # ingredients invalid, fallback to default page render
+            else:
+                context_dict['error_message'] = ingredients_form.errors + ingredients_form.non_form_errors()
+        # recipe details invalid, fallback to default page render
         else:
-            print(recipe_form.errors)
-            context_dict = {
-                            'error_message': recipe_form.errors}
-            return render(request, 'allgoodrecipes/add_recipe.html', context=context_dict) 
-    else:
-        recipe_form = RecipeForm()
-        ingredients_set_form = IngredientsFormSet()
-        
-        context_dict = {
-                        'recipe_form': recipe_form,
-                        'add_successful': add_successful,
-                        'ingredients_set_form':ingredients_set_form}
-                          
-        return render(request, 'allgoodrecipes/add_recipe.html', context=context_dict)
+            context_dict['error_message'] = recipe_form.errors
+    
+    # default page load
+    recipe_form = RecipeForm()
+    ingredients_set_form = IngredientsFormSet()
+   
+    context_dict['unit_choices'] = Unit.objects.all()
+    context_dict['recipe_form'] = recipe_form
+    context_dict['add_successful'] = add_successful
+    context_dict['ingredients_set_form'] = ingredients_set_form
+
+    return render(request, 'allgoodrecipes/add_recipe.html', context=context_dict)
         
 
 @login_required
