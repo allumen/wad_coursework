@@ -37,7 +37,7 @@ SECRET_KEY = 'iqby!f)ig-ey#6-%09o!5u340p%gbc9-!3k#qb#buse^wuc_vl'
 DEBUG = True
 
 ALLOWED_HOSTS = ['',
-                 '127.0.0.1',]
+                 '127.0.0.1', 'allumen.pythonanywhere.com']
 
 
 # Application definition

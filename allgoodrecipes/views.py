@@ -7,6 +7,7 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404, JsonRespons
 from allgoodrecipes.forms import UserForm, UserProfileForm, RecipeForm
 from allgoodrecipes.models import Recipe, RecipeCategory, UserProfile, Ingredient, Ingredient, Unit, Comment
 from django.contrib.auth.models import User
+import datetime
 
 import datetime
 from calendar import timegm
@@ -18,8 +19,10 @@ from django.template.response import TemplateResponse
 from django.utils.http import http_date
 
 def index(request):
+    recipes = Recipe.objects.order_by('-date_created')
+    categories = RecipeCategory.objects.all()
     recipes = category_list = Recipe.objects.order_by('-date_created')
-    #tips
+
     return render(request, 'allgoodrecipes/index.html', context={'recipes':recipes})
 
 def recipe_search(request, category_title=None):
