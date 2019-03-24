@@ -1,2 +1,4 @@
 db.sqlite3
 *.pyc
+/allgoodrecipes/migrations/*
+!/allgoodrecipes/migrations/__init__.py
