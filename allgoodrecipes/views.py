@@ -9,6 +9,14 @@ from allgoodrecipes.models import Recipe, RecipeCategory, UserProfile, Ingredien
 from django.contrib.auth.models import User
 import datetime
 
+import datetime
+from calendar import timegm
+from functools import wraps
+
+from django.contrib.sites.shortcuts import get_current_site
+from django.core.paginator import EmptyPage, PageNotAnInteger
+from django.template.response import TemplateResponse
+from django.utils.http import http_date
 
 def index(request):
     recipes = Recipe.objects.order_by('-date_created')
@@ -16,7 +24,6 @@ def index(request):
     recipes = category_list = Recipe.objects.order_by('-date_created')
 
     return render(request, 'allgoodrecipes/index.html', context={'recipes':recipes})
-
 
 def recipe_search(request, category_title=None):
     context_dict = {}
