@@ -42,6 +42,7 @@ class Recipe(models.Model):
     
     date_created = models.DateField(auto_now_add=True)
     public = models.BooleanField(default=False)
+    likes = models.ManyToManyField(UserProfile, blank=True, related_name="likes")
     
     objects = models.Manager()
     

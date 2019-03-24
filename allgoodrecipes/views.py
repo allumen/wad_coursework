@@ -7,9 +7,8 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404, JsonRespons
 from allgoodrecipes.forms import UserForm, UserProfileForm, RecipeForm
 from allgoodrecipes.models import Recipe, RecipeCategory, UserProfile, Ingredient, Ingredient, Unit, Comment
 from django.contrib.auth.models import User
-import datetime
+from datetime import datetime
 
-import datetime
 from calendar import timegm
 from functools import wraps
 
@@ -17,23 +16,37 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.core.paginator import EmptyPage, PageNotAnInteger
 from django.template.response import TemplateResponse
 from django.utils.http import http_date
+from django.db.models import Count
 
 def index(request):
-    recipes = Recipe.objects.order_by('-date_created')
+    recipes = None
+    
+    # filter unpublished recipes for regular users
+    if request.user.is_superuser:
+        recipes = Recipe.objects.annotate(likes_count=Count('likes')).order_by('-likes_count')[:5]
+    else:
+        recipes = Recipe.objects.filter(public=True).annotate(likes_count=Count('likes')).order_by('-likes_count')[:5]
+    
+    today_recipes = Recipe.objects.filter(date_created=datetime.today().date(), public=True).order_by('-date_created')[:5]
+    
     categories = RecipeCategory.objects.all()
-    recipes = category_list = Recipe.objects.order_by('-date_created')
-
-    return render(request, 'allgoodrecipes/index.html', context={'recipes':recipes})
+    return render(request, 'allgoodrecipes/index.html', context={'recipes':recipes, 'categories': categories, 'today_recipes': today_recipes})
 
 def recipe_search(request, category_title=None):
     context_dict = {}
-
+    recipes = None
+    
     if category_title:
         category = RecipeCategory.objects.get(title=category_title)
-        context_dict['recipes'] = Recipe.objects.filter(categories__in=[category]).order_by('-date_created')
+        recipes = Recipe.objects.filter(categories__in=[category]).order_by('-date_created')
     else:
-        context_dict['recipes'] = Recipe.objects.all()
-
+        recipes = Recipe.objects.all()
+        
+    # filter unpublished recipes for regular users
+    if not request.user.is_superuser:
+        recipes = recipes.filter(public=True)
+        
+    context_dict['recipes'] = recipes
     return render(request, 'allgoodrecipes/search.html', context=context_dict)
     
 def search_ajax(request):
@@ -52,6 +65,10 @@ def search_ajax(request):
 def view_recipe(request, recipe_url):
     try:
         recipe = Recipe.objects.get(url=recipe_url)
+        # hide unpublished recipe for regular users
+        if not recipe.public and not request.user.is_superuser:
+            return HttpResponse("This recipe is hidden")
+        
         ingredients = Ingredient.objects.all()
         comments = Comment.objects.filter(post=recipe).order_by('-date')
         
@@ -80,49 +97,69 @@ def view_tip(request, tip_url):
     except Tip.DoesNotExist:
         raise Http404
 		
+        
+@login_required
+def like_recipe(request, recipe_url):
+    response_data = {}
+    try:
+        recipe = Recipe.objects.get(url=recipe_url)
+        user_profile = UserProfile.objects.get(user=request.user)
+        print(user_profile)
+        if user_profile in recipe.likes.all():
+            recipe.likes.remove(user_profile)
+        else:
+            recipe.likes.add(user_profile)
+        response_data["status"] = "success"
+        response_data["likes"] = recipe.likes.count()
+        return JsonResponse(response_data)
+    except Recipe.DoesNotExist:
+        response_data["status"] = "fail"
+        response_data["error"] = "Recipe does not exist"
+        return JsonResponse(response_data)
 		
 @login_required
-def edit_recipe(request, recipe_url):
-    response_data = {}
-    
+def edit_recipe(request, recipe_url):        
     try:
-        action = request.GET.get('action')
-        if action is None:
-            action = request.POST.get('action')
-        
         recipe = Recipe.objects.get(url=recipe_url)
-            
-        if action == "change_public":
-            recipe.public = not recipe.public
-            recipe.save()
-            
-            response_data["status"] = "success"
-        elif action == "update_image":
-            image = request.FILES.get('imageFile')
-            if image is not None:
-                recipe.image = image
+
+        if not request.user == recipe.user.user and not request.user.is_superuser:
+            return HttpResponse("Unauthorised action!")            
+        else:
+            response_data = {}
+            action = request.GET.get('action')
+            if action is None:
+                action = request.POST.get('action')
+                            
+            if action == "change_public":
+                recipe.public = not recipe.public
                 recipe.save()
+                
                 response_data["status"] = "success"
-                response_data["image_url"] = recipe.image.name
+            elif action == "update_image":
+                image = request.FILES.get('imageFile')
+                if image is not None:
+                    recipe.image = image
+                    recipe.save()
+                    response_data["status"] = "success"
+                    response_data["image_url"] = recipe.image.name
+                else:
+                    response_data["status"] = "fail"
+            elif action == "add_category":
+                category_name = request.POST.get('category_name')
+                category = RecipeCategory.objects.get(title=category_name)
+                recipe.categories.add(category)
+                response_data["status"] = "success"
+                response_data["category_title"] = category.title
+            elif action == "remove_category":
+                category_name = request.POST.get('category_name')
+                category = RecipeCategory.objects.get(title=category_name)
+                recipe.categories.remove(category)
+                response_data["status"] = "success"
+                response_data["category_title"] = category.title
             else:
                 response_data["status"] = "fail"
-        elif action == "add_category":
-            category_name = request.POST.get('category_name')
-            category = RecipeCategory.objects.get(title=category_name)
-            recipe.categories.add(category)
-            response_data["status"] = "success"
-            response_data["category_title"] = category.title
-        elif action == "remove_category":
-            category_name = request.POST.get('category_name')
-            category = RecipeCategory.objects.get(title=category_name)
-            recipe.categories.remove(category)
-            response_data["status"] = "success"
-            response_data["category_title"] = category.title
-        else:
-            response_data["status"] = "fail"
-            response_data["error"] = "Incorrect ajax, action undefined"
-        return JsonResponse(response_data)
-        
+                response_data["error"] = "Incorrect ajax, action undefined"
+            return JsonResponse(response_data)
     except Recipe.DoesNotExist:
         response_data["status"] = "fail"
         response_data["error"] = "Recipe does not exist"
@@ -198,10 +235,10 @@ def profile_comments(request):
     pass
     
 def privacy(request):
-    pass
+    return HttpResponse("Privacy policy")
     
 def terms(request):
-    pass
+    return HttpResponse("T&Cs")
     
 def contact(request):
     return render(request, 'allgoodrecipes/contact.html', {})

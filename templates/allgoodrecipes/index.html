@@ -9,50 +9,65 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <h1>Home</h1>
-<div class="container border">
-  <div class="row border">
-    <div class="col-sm-3 border">
-        <h5>Categories</h5>
+<div class="container">
+  <div class="row pb-5">
+    <div class="col-sm-2 border rounded mr-auto">
+        <h4>Categories</h4>
+        <div>
         {% if categories %}
             {% for category in categories %}
                 <a href="{% url 'recipe_search' category_title=category.title %}">{{ category.title }}</a><br>
 			{% endfor %}
         {% endif %}
+        </div>
     </div>
-	<div class="col-sm-6 border">
-	  <div class="row border">
-		<i><b>Trending</i></b>
-		</br>
+	<div class="col-sm-7">
+	  <div class="row mb-2">
+      <div class="col-sm-12 border rounded">
+		<h4>Trending</h4>
+        <div>
 		{% if recipes %}
             {% for recipe in recipes %}
-                <p><a href="{% url 'view_recipe' recipe_url=recipe.url %}">{{ recipe.title }} - {{recipe.date_created}}</a></p><br>
+                <p><a href="{% url 'view_recipe' recipe_url=recipe.url %}">{{ recipe.title }} - {{recipe.date_created}}</a></p>
 			{% endfor %}
         {% else %}
             <p>There are no published recipes at the moment</p>
         {% endif %}
+        </div>
       </div>
-	  <div class="row border">
-		<i><b>Latest events</i></b>
-		</br>
-		{% if recipes2 %}
-		  {% for recipe in recipes2 %}
+      </div>
+	  <div class="row border rounded">
+      <div class="col-sm-12">
+		<h4>Latest events</h4>
+		{% if today_recipes %}
+		  {% for recipe in today_recipes %}
 		    <a href="{% url 'view_recipe' recipe_url=recipe.url %}"><p>{{ recipe.title }} - {{recipe.date_created}}</p></a>
 		  {% endfor %}
 		{% else %}
 		  <p>There are no recipes published today!</p>
 		{% endif %}
 	  </div>
+	  </div>
+      <div class="row border rounded">
+      <div class="col-sm-12">
+		<a href="{% url 'recipe_search' %}" class="btn btn-link btn-lg">View all recipes</a>
+	  </div>
+	  </div>
 	</div>
-	<div class="col-sm-3 border">
-	  <div class="row border">
-		<i><b>Competitions</i></b>
-		</br>
+	<div class="col-sm-2 ml-auto border rounded">
+	  <div class="row">
+      <div class="col-sm-12">
+		<h4>Competitions</h4>
+		<br>
 		<div class="well">current competition</div>
       </div>
-	  <div class="row border">
-		<i><b>Tips</i></b>
-		</br>
+      </div>
+	  <div class="row">
+      <div class="col-sm-12">
+		<h4>Tips</h4>
+		<br>
 		<div class="well">new tips</div>
+	  </div>
 	  </div>
   </div>
 </div>

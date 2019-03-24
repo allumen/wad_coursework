@@ -6,6 +6,7 @@ urlpatterns = [
     path('recipe/<recipe_url>/', views.view_recipe, name='view_recipe'),
     path('tip/<tip_url>/', views.view_tip, name='view_tip'),
     path('recipe/<recipe_url>/edit/', views.edit_recipe, name='edit_recipe'),
+    path('recipe/<recipe_url>/like/', views.like_recipe, name='like_recipe'),
     path('add_recipe/', views.add_recipe, name='add_recipe'),
     path('profile/', include([
         path('', views.profile, name='profile'),

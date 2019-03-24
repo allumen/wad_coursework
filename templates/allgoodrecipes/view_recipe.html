@@ -12,16 +12,16 @@
     <div class="col-lg-6">
         <div class="mb-3">
             <h3 class="m-0">{{ recipe.title }}</h3>
-            {% if user.is_authenticated and user == recipe.user.user or user.is_authenticated and perms.recipe.publish %}
+            {% if user.is_authenticated and user == recipe.user.user or user.is_authenticated and user.is_superuser %}
                 {% if recipe.public %}
                     <span class="badge badge-success" id="public_label" value="public">Published</span>
                 {% else %}
                     <span class="badge badge-warning" id="public_label" value="hidden">Hidden from public</span>
                 {% endif %}
+                <hr />
             {% endif %}
         </div>
-        <hr />
-        {% if user.is_authenticated and user == recipe.user.user or user.is_authenticated and perms.recipe.publish %}
+        {% if user.is_authenticated and user == recipe.user.user or user.is_authenticated and user.is_superuser %}
             <div class="">
               <h5>Editing</h5>
                 {% if recipe.public %}
@@ -49,7 +49,7 @@
                 <h6 id="categories-title">This recipe is not in any category</h6>
                 <p id="categories-list"></p>
             {% endif %}
-            {% if user.is_authenticated and user == recipe.user.user or user.is_authenticated and perms.recipe.publish %}
+            {% if user.is_authenticated and user == recipe.user.user or user.is_authenticated and user.is_superuser %}
             <div class="row">
                 <div class="col-lg-9">
                     <input type="text" class="form-control" id="field_add_category" placeholder="New category" />
@@ -81,9 +81,11 @@
         <div class="media">
           <img class="mr-3 img-fluid" id="recipe_image" src="/media/{{ recipe.image }}" alt="Recipe picture">
         </div>
-        <div>
-          Posted by: {{ user }}
+        <div id="recipe_details">
+          Posted by: {{ recipe.user.user.username }}
           on {{ recipe.date_created }}
+          <br>
+          <b>Likes: <span id="like_count">{{ recipe.likes.count }}</span></b><a id="like_recipe" class="btn btn-sm btn-danger ml-2">Like</a>
         </div>
         <hr />
         <h4>Ingridients</h4>
@@ -173,6 +175,32 @@ var csrftoken = jQuery("[name=csrfmiddlewaretoken]").val();
             }
         });
     }
+    
+    // like
+    $("#recipe_details").on('click', '#like_recipe', function() {
+      $.ajax({
+        type: 'POST',
+        url: '{% url "like_recipe" recipe_url=recipe.url %}',
+        data: {},
+        dataType: 'json',
+        success: function (data) {
+            if (data.status === "success") {
+                if($("#like_recipe").text() === "Like") {
+                    $("#like_recipe").removeClass("btn-danger");
+                    $("#like_recipe").addClass("btn-warning");
+                    $("#like_recipe").text("Dislike");
+                } else {
+                    $("#like_recipe").removeClass("btn-warning");
+                    $("#like_recipe").addClass("btn-danger");
+                    $("#like_recipe").text("Like");
+                }
+                $("#like_count").text(data.likes);                
+            } else {
+                alert("Fail! Error:" + data.error);
+            }
+        }
+      });
+    });
     
     $("#categories").on('click', '#remove-category', function() {
       category = $(this).parent().attr('value');
